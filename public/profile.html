@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
+.container { max-width:600px; margin:0 auto; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:20px; border-bottom:1px solid #222; }
+h1 { color:#00c853; font-size:1.5rem; }
+.btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; }
+.btn.outline { background:transparent; border:1px solid #333; color:#ccc; }
+.btn.danger { background:#ff4444; color:#fff; }
+.card { background:#121212; border:1px solid #222; padding:22px; border-radius:12px; margin-bottom:18px; }
+.card h2 { color:#00c853; font-size:1rem; margin-bottom:15px; }
+.card.danger h2 { color:#ff4444; }
+input { width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.92rem; margin-bottom:10px; font-family:inherit; }
+input:focus { outline:none; border-color:#00c853; }
+.msg { padding:10px; border-radius:8px; font-size:0.82rem; text-align:center; margin-top:8px; display:none; }
+.msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1px solid rgba(0,200,83,0.3); display:block; }
+.msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.3); display:block; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👤 Profile</h1>
+        <button class="btn outline" onclick="window.location.href='/dashboard.html'">← Dashboard</button>
+    </div>
+
+    <div class="card">
+        <h2>📧 Change Email</h2>
+        <input type="email" id="newEmail" placeholder="New email" />
+        <input type="password" id="emailPassword" placeholder="Current password" />
+        <button class="btn" onclick="changeEmail()">Update Email</button>
+        <div class="msg" id="emailMsg"></div>
+    </div>
+
+    <div class="card">
+        <h2>🔐 Change Password</h2>
+        <input type="password" id="oldPass" placeholder="Current password" />
+        <input type="password" id="newPass" placeholder="New password (min 6 chars)" />
+        <button class="btn" onclick="changePassword()">Update Password</button>
+        <div class="msg" id="passMsg"></div>
+    </div>
+
+    <div class="card danger">
+        <h2>⚠️ Delete Account</h2>
+        <p style="color:#888;font-size:0.85rem;margin-bottom:12px;">This deletes your account, bot, and all data. Cannot be undone.</p>
+        <input type="password" id="delPass" placeholder="Password to confirm" />
+        <button class="btn danger" onclick="deleteAccount()">Delete My Account</button>
+        <div class="msg" id="delMsg"></div>
+    </div>
+</div>
+
+<script>
+async function changeEmail() {
+    const email = document.getElementById('newEmail').value.trim();
+    const password = document.getElementById('emailPassword').value;
+    const m = document.getElementById('emailMsg');
+    if (!email || !password) { m.className = 'msg err'; m.textContent = 'Fill both fields'; return; }
+    const res = await fetch('/api/profile/email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error) { m.className = 'msg err'; m.textContent = data.error; }
+    else { m.className = 'msg ok'; m.textContent = '✅ Email updated'; document.getElementById('newEmail').value = ''; document.getElementById('emailPassword').value = ''; }
+}
+
+async function changePassword() {
+    const oldPassword = document.getElementById('oldPass').value;
+    const newPassword = document.getElementById('newPass').value;
+    const m = document.getElementById('passMsg');
+    if (!oldPassword || !newPassword) { m.className = 'msg err'; m.textContent = 'Fill both fields'; return; }
+    const res = await fetch('/api/profile/password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const data = await res.json();
+    if (data.error) { m.className = 'msg err'; m.textContent = data.error; }
+    else { m.className = 'msg ok'; m.textContent = '✅ Password updated'; document.getElementById('oldPass').value = ''; document.getElementById('newPass').value = ''; }
+}
+
+async function deleteAccount() {
+    const password = document.getElementById('delPass').value;
+    const m = document.getElementById('delMsg');
+    if (!password) { m.className = 'msg err'; m.textContent = 'Enter password'; return; }
+    if (!confirm('Really delete your account? This cannot be undone.')) return;
+    const res = await fetch('/api/profile/delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    if (data.error) { m.className = 'msg err'; m.textContent = data.error; }
+    else { alert('Account deleted'); window.location.href = '/signup.html'; }
+}
+</script>
+</body>
+</html>
