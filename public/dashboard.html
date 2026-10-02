@@ -7,77 +7,58 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; min-height:100vh; }
-.container { max-width:1000px; margin:0 auto; }
-
-/* Header */
+.container { max-width:1100px; margin:0 auto; }
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:1px solid #222; flex-wrap:wrap; gap:10px; }
 h1 { color:#00c853; font-size:1.6rem; }
-.user-info { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
+.user-info { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .user-email { color:#888; font-size:0.85rem; }
 .btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s; }
 .btn:hover { background:#00e676; }
 .btn.outline { background:transparent; border:1px solid #333; color:#ccc; }
 .btn.outline:hover { border-color:#00c853; color:#00c853; }
 .btn.small { padding:8px 14px; font-size:0.8rem; }
-
-/* Cards */
+.tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; border-bottom:1px solid #222; padding-bottom:0; }
+.tab { padding:12px 20px; background:transparent; color:#888; border:none; border-bottom:2px solid transparent; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s; }
+.tab:hover { color:#ccc; }
+.tab.active { color:#00c853; border-bottom-color:#00c853; }
 .card { background:#121212; border:1px solid #222; padding:25px; border-radius:12px; margin-bottom:20px; }
 .card h2 { color:#00c853; font-size:1.05rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
 .card .subtitle { color:#666; font-size:0.8rem; margin-bottom:18px; }
-
-/* Inputs */
-input[type=text], input[type=password] { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.95rem; font-family:'Courier New',monospace; }
-input:focus { outline:none; border-color:#00c853; }
-
-/* Stats bar */
+input[type=text], input[type=password], textarea { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.95rem; font-family:inherit; }
+textarea { font-family:'Courier New',monospace; resize:vertical; min-height:100px; }
+input:focus, textarea:focus { outline:none; border-color:#00c853; }
 .stats-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; }
 .stat { background:#0a0a0a; border:1px solid #222; padding:8px 14px; border-radius:20px; font-size:0.75rem; color:#888; }
 .stat strong { color:#00c853; }
-
-/* Search */
-.search-box { margin-bottom:15px; position:relative; }
-.search-box input { padding-left:40px; }
-.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#555; }
-
-/* Category filter */
 .filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px; }
 .filter-tab { padding:6px 14px; background:#0a0a0a; border:1px solid #222; border-radius:20px; font-size:0.75rem; color:#888; cursor:pointer; transition:0.2s; }
 .filter-tab:hover { border-color:#00c853; color:#00c853; }
 .filter-tab.active { background:#00c853; border-color:#00c853; color:#000; font-weight:bold; }
-
-/* Command grid */
 .cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; max-height:500px; overflow-y:auto; padding-right:5px; }
 .cmd-grid::-webkit-scrollbar { width:6px; }
 .cmd-grid::-webkit-scrollbar-track { background:#0a0a0a; }
 .cmd-grid::-webkit-scrollbar-thumb { background:#222; border-radius:3px; }
-.cmd-grid::-webkit-scrollbar-thumb:hover { background:#00c853; }
-
-.cmd {
-    display:flex; align-items:center; gap:12px;
-    padding:12px 14px; background:#0a0a0a;
-    border:1px solid #1a1a1a; border-radius:10px;
-    cursor:pointer; transition:0.2s; position:relative;
-}
+.cmd { display:flex; align-items:center; gap:12px; padding:12px 14px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:10px; cursor:pointer; transition:0.2s; position:relative; }
 .cmd:hover { border-color:#00c853; background:#0d1510; }
 .cmd.selected { border-color:#00c853; background:rgba(0,200,83,0.08); }
-.cmd.selected::after {
-    content:'✓'; position:absolute; top:8px; right:10px;
-    color:#00c853; font-weight:bold; font-size:0.9rem;
-}
-.cmd input[type=checkbox] { display:none; }
+.cmd.selected::after { content:'✓'; position:absolute; top:8px; right:10px; color:#00c853; font-weight:bold; font-size:0.9rem; }
 .cmd-icon { font-size:1.3rem; flex-shrink:0; }
 .cmd-body { flex:1; min-width:0; }
 .cmd-name { color:#00c853; font-size:0.85rem; font-weight:600; margin-bottom:2px; }
 .cmd-id { color:#666; font-size:0.7rem; font-family:'Courier New',monospace; }
-
-/* Status */
 .status-msg { padding:10px; border-radius:8px; font-size:0.85rem; text-align:center; margin-top:12px; }
-.status-msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1pxpx solid rgba(0,200,83,0.3); }
-.status-msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1 solid rgba(255,68,68,0.3); }
-
-/* Selector buttons */
-.selector-actions { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.section-hint { color:#666; font-size:0.75rem; margin-top:10px; text-align:center; }
+.status-msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1px solid rgba(0,200,83,0.3); }
+.status-msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.3); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+.custom-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+.custom-row input { flex:1; padding:10px; font-size:0.85rem; }
+.custom-row button { padding:10px 14px; background:#ff4444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+.custom-add { padding:10px 20px; background:transparent; border:1px dashed #00c853; color:#00c853; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:8px; }
+.analytic-row { display:flex; justify-content:space-between; padding:10px 14px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:8px; margin-bottom:6px; font-size:0.85rem; }
+.analytic-row .rank { color:#666; font-weight:bold; min-width:30px; }
+.analytic-row .cmd-name { color:#00c853; flex:1; font-family:'Courier New',monospace; }
+.analytic-row .count { color:#888; }
 </style>
 </head>
 <body>
@@ -86,53 +67,83 @@ input:focus { outline:none; border-color:#00c853; }
         <h1>🤖 Bot Dashboard</h1>
         <div class="user-info">
             <span class="user-email" id="userEmail"></span>
+            <button class="btn outline small" id="adminBtn" style="display:none;" onclick="window.location.href='/admin.html'">👑 Admin</button>
             <button class="btn outline small" onclick="logout()">Logout</button>
         </div>
     </div>
 
-    <!-- Step 1: Bot Token -->
-    <div class="card">
-        <h2>⚙️ Step 1 — Connect Your Bot</h2>
-        <div class="subtitle">
-            Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code style="color:#00c853;background:#0a0a0a;padding:2px 6px;border-radius:4px;">/newbot</code> → copy the token.
-        </div>
-        <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC-DEF...)" />
-        <div id="botStatus" class="status-msg" style="display:none;"></div>
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('setup')">⚙️ Setup</button>
+        <button class="tab" onclick="switchTab('commands')">🎯 Commands</button>
+        <button class="tab" onclick="switchTab('custom')">✨ Custom</button>
+        <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
     </div>
 
-    <!-- Step 2: Commands -->
-    <div class="card">
-        <h2>🎯 Step 2 — Pick Your Commands</h2>
-        <div class="subtitle">Tap any command to toggle it on/off. Only selected commands will appear in your bot.</div>
-
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat">Selected: <strong id="selectedCount">0</strong></div>
-            <div class="stat">Total: <strong id="totalCount">0</strong></div>
+    <!-- TAB: SETUP -->
+    <div class="tab-panel active" id="panel-setup">
+        <div class="card">
+            <h2>⚙️ Bot Token</h2>
+            <div class="subtitle">Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code style="color:#00c853;background:#0a0a0a;padding:2px 6px;border-radius:4px;">/newbot</code> → copy the token.</div>
+            <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC-DEF...)" />
         </div>
 
-        <!-- Search -->
-        <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="Search commands..." oninput="filterCommands()" />
+        <div class="card">
+            <h2>👋 Welcome Message</h2>
+            <div class="subtitle">Custom greeting when someone sends /start. Leave blank for default.</div>
+            <textarea id="welcomeMessage" placeholder="👋 Hey there! Welcome to my bot. Try /menu to see what I can do!"></textarea>
         </div>
-
-        <!-- Category filter -->
-        <div class="filter-tabs" id="filterTabs"></div>
-
-        <!-- Selector actions -->
-        <div class="selector-actions">
-            <button class="btn outline small" onclick="selectAll()">Select All</button>
-            <button class="btn outline small" onclick="clearAll()">Clear All</button>
-            <button class="btn outline small" onclick="selectPopular()">Popular Only</button>
-        </div>
-
-        <!-- Command grid -->
-        <div class="cmd-grid" id="cmdGrid"></div>
     </div>
 
-    <!-- Save button -->
-    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem; margin-bottom:40px;">
+    <!-- TAB: COMMANDS -->
+    <div class="tab-panel" id="panel-commands">
+        <div class="card">
+            <h2>🎯 Pick Your Commands</h2>
+            <div class="subtitle">Tap any command to toggle it on/off.</div>
+
+            <div class="stats-bar">
+                <div class="stat">Selected: <strong id="selectedCount">0</strong></div>
+                <div class="stat">Total: <strong id="totalCount">0</strong></div>
+            </div>
+
+            <div class="search-box" style="margin-bottom:15px;position:relative;">
+                <input type="text" id="searchInput" placeholder="🔍 Search commands..." oninput="renderCommands()" style="padding-left:14px;" />
+            </div>
+
+            <div class="filter-tabs" id="filterTabs"></div>
+
+            <div class="selector-actions" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="btn outline small" onclick="selectAll()">Select All</button>
+                <button class="btn outline small" onclick="clearAll()">Clear All</button>
+                <button class="btn outline small" onclick="selectPopular()">Popular Only</button>
+            </div>
+
+            <div class="cmd-grid" id="cmdGrid"></div>
+        </div>
+    </div>
+
+    <!-- TAB: CUSTOM COMMANDS -->
+    <div class="tab-panel" id="panel-custom">
+        <div class="card">
+            <h2>✨ Custom Commands</h2>
+            <div class="subtitle">Create your own commands. Example: <code style="color:#00c853;">greet</code> → <code style="color:#00c853;">Hello friend!</code>. User sends /greet and bot replies.</div>
+            <div id="customList"></div>
+            <button class="custom-add" onclick="addCustom()">+ Add Command</button>
+        </div>
+    </div>
+
+    <!-- TAB: ANALYTICS -->
+    <div class="tab-panel" id="panel-analytics">
+        <div class="card">
+            <h2>📊 Analytics</h2>
+            <div class="subtitle">Your most-used commands.</div>
+            <div class="stats-bar">
+                <div class="stat">Total Uses: <strong id="totalUses">0</strong></div>
+            </div>
+            <div id="analyticList"></div>
+        </div>
+    </div>
+
+    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem; margin-top:20px; margin-bottom:40px;">
         💾 Save & Launch Bot
     </button>
 </div>
@@ -140,9 +151,9 @@ input:focus { outline:none; border-color:#00c853; }
 <script>
 let allCommands = [];
 let selectedCommands = new Set();
+let customCommands = {};
 let currentFilter = 'all';
 
-// Category mapping — commands grouped by type
 const CATEGORIES = {
     'fun': ['joke','quote','fact','dice','coinflip','8ball','riddle','truth','dare','roast','compliment','vibe','lucky','yesno','wouldyourather'],
     'utility': ['time','date','week','month','calc','random','password','genpass','uuid','reverse','upper','lower','len','count','spell','alternate','titlecase','slugify','shuffle','rotate','caesar','vowels'],
@@ -158,106 +169,82 @@ const CATEGORIES = {
 };
 
 const ICONS = {
-    joke:'😄', quote:'💬', fact:'🧠', dice:'🎲', coinflip:'🪙', '8ball':'🎱', riddle:'🧩', truth:'💭', dare:'🔥',
-    roast:'🔥', compliment:'💚', vibe:'✨', lucky:'🍀', yesno:'❓', wouldyourather:'🤔',
-    time:'🕐', date:'📅', week:'📆', month:'🗓️', calc:'🧮', random:'🎲', password:'🔐', genpass:'🔑',
-    uuid:'🆔', reverse:'🔄', upper:'🔠', lower:'🔡', len:'📏', count:'📊', spell:'🔤', alternate:'🔀',
-    titlecase:'📝', slugify:'🔗', shuffle:'🎲', rotate:'🔁', caesar:'🔐', vowels:'🔤',
-    sha256:'🔒', md5:'🔒', b64encode:'📤', b64decode:'📥', morse:'📡',
-    binary:'0️⃣', hex:'🔢', octal:'8️⃣', primes:'🔢', fibonacci:'🌿', factorial:'❗', gcd:'➗',
-    bmi:'⚖️', tip:'💰', split:'💵', percent:'📊',
-    strength:'🛡️', scamcheck:'🕵️', linkcheck:'🔗', sectips:'🔒', phishing:'🎣', randpin:'🔢', otp:'🔐', linuxcmd:'🐧',
-    age:'🎂', daysuntil:'⏳', countdown:'⏱️', unixtime:'⏰',
-    hexcolor:'🎨', rgb:'🌈',
-    pick:'🎯', roll:'🎲', rate:'⭐', ship:'💘',
-    mood:'💭', goal:'🎯', mygoal:'✅', advice:'💡',
-    menu:'📋', ping:'🏓'
+    joke:'😄',quote:'💬',fact:'🧠',dice:'🎲',coinflip:'🪙','8ball':'🎱',riddle:'🧩',truth:'💭',dare:'🔥',
+    roast:'🔥',compliment:'💚',vibe:'✨',lucky:'🍀',yesno:'❓',wouldyourather:'🤔',
+    time:'🕐',date:'📅',week:'📆',month:'🗓️',calc:'🧮',random:'🎲',password:'🔐',genpass:'🔑',
+    uuid:'🆔',reverse:'🔄',upper:'🔠',lower:'🔡',len:'📏',count:'📊',spell:'🔤',alternate:'🔀',
+    titlecase:'📝',slugify:'🔗',shuffle:'🎲',rotate:'🔁',caesar:'🔐',vowels:'🔤',
+    sha256:'🔒',md5:'🔒',b64encode:'📤',b64decode:'📥',morse:'📡',
+    binary:'0️⃣',hex:'🔢',octal:'8️⃣',primes:'🔢',fibonacci:'🌿',factorial:'❗',gcd:'➗',
+    bmi:'⚖️',tip:'💰',split:'💵',percent:'📊',
+    strength:'🛡️',scamcheck:'🕵️',linkcheck:'🔗',sectips:'🔒',phishing:'🎣',randpin:'🔢',otp:'🔐',linuxcmd:'🐧',
+    age:'🎂',daysuntil:'⏳',countdown:'⏱️',unixtime:'⏰',
+    hexcolor:'🎨',rgb:'🌈',pick:'🎯',roll:'🎲',rate:'⭐',ship:'💘',
+    mood:'💭',goal:'🎯',mygoal:'✅',advice:'💡',menu:'📋',ping:'🏓'
 };
 
-const CATEGORY_LABELS = {
-    all: 'All',
-    fun: '🎮 Fun',
-    utility: '🛠️ Utility',
-    hashing: '🔒 Hashing',
-    numbers: '🔢 Numbers',
-    calculators: '🧮 Calculators',
-    security: '🛡️ Security',
-    dates: '📅 Dates',
-    colors: '🎨 Colors',
-    random: '🎲 Random',
-    personal: '💭 Personal',
-    info: 'ℹ️ Info'
-};
+const CATEGORY_LABELS = { all:'All', fun:'🎮 Fun', utility:'🛠️ Utility', hashing:'🔒 Hashing', numbers:'🔢 Numbers', calculators:'🧮 Calculators', security:'🛡️ Security', dates:'📅 Dates', colors:'🎨 Colors', random:'🎲 Random', personal:'💭 Personal', info:'ℹ️ Info' };
+
+let currentUser = null;
 
 async function loadUser() {
     try {
         const res = await fetch('/api/me');
         if (!res.ok) { window.location.href = '/login.html'; return; }
-        const user = await res.json();
-        document.getElementById('userEmail').textContent = user.email;
+        currentUser = await res.json();
+        document.getElementById('userEmail').textContent = currentUser.email;
+        if (currentUser.isAdmin) document.getElementById('adminBtn').style.display = 'inline-block';
 
-        if (user.bot_token) {
-            document.getElementById('botToken').value = user.bot_token;
-            const st = document.getElementById('botStatus');
-            st.className = 'status-msg ok';
-            st.style.display = 'block';
-            st.innerHTML = `✅ Bot connected: <strong>@${user.bot_username}</strong>`;
-        }
+        if (currentUser.bot_token) document.getElementById('botToken').value = currentUser.bot_token;
+        if (currentUser.welcome_message) document.getElementById('welcomeMessage').value = currentUser.welcome_message;
 
         const cmdsRes = await fetch('/api/commands');
         allCommands = await cmdsRes.json();
 
-        const enabled = JSON.parse(user.enabled_commands || '[]');
-        selectedCommands = new Set(enabled);
+        selectedCommands = new Set(JSON.parse(currentUser.enabled_commands || '[]'));
+        customCommands = JSON.parse(currentUser.custom_commands || '{}');
 
         renderFilterTabs();
         renderCommands();
+        renderCustom();
         updateStats();
-    } catch (e) {
-        window.location.href = '/login.html';
-    }
+        loadAnalytics();
+    } catch (e) { window.location.href = '/login.html'; }
+}
+
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
 }
 
 function renderFilterTabs() {
     const tabs = document.getElementById('filterTabs');
-    tabs.innerHTML = Object.entries(CATEGORY_LABELS).map(([key, label]) => `
-        <div class="filter-tab ${key === currentFilter ? 'active' : ''}" onclick="setFilter('${key}')">${label}</div>
-    `).join('');
+    tabs.innerHTML = Object.entries(CATEGORY_LABELS).map(([key, label]) =>
+        `<div class="filter-tab ${key === currentFilter ? 'active' : ''}" onclick="setFilter('${key}')">${label}</div>`
+    ).join('');
 }
 
-function setFilter(cat) {
-    currentFilter = cat;
-    renderFilterTabs();
-    renderCommands();
-}
+function setFilter(cat) { currentFilter = cat; renderFilterTabs(); renderCommands(); }
 
 function getCommandCategory(cmdId) {
-    for (const [cat, ids] of Object.entries(CATEGORIES)) {
-        if (ids.includes(cmdId)) return cat;
-    }
+    for (const [cat, ids] of Object.entries(CATEGORIES)) if (ids.includes(cmdId)) return cat;
     return 'info';
-}
-
-function filterCommands() {
-    renderCommands();
 }
 
 function renderCommands() {
     const grid = document.getElementById('cmdGrid');
     const search = document.getElementById('searchInput').value.toLowerCase();
-
     const filtered = allCommands.filter(c => {
         const matchesSearch = !search || c.id.toLowerCase().includes(search) || c.name.toLowerCase().includes(search);
-        const cat = getCommandCategory(c.id);
-        const matchesCategory = currentFilter === 'all' || cat === currentFilter;
+        const matchesCategory = currentFilter === 'all' || getCommandCategory(c.id) === currentFilter;
         return matchesSearch && matchesCategory;
     });
-
     if (!filtered.length) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">No commands match your search</div>';
         return;
     }
-
     grid.innerHTML = filtered.map(c => `
         <div class="cmd ${selectedCommands.has(c.id) ? 'selected' : ''}" onclick="toggleCmd('${c.id}')">
             <span class="cmd-icon">${ICONS[c.id] || '⚡'}</span>
@@ -265,38 +252,23 @@ function renderCommands() {
                 <div class="cmd-name">${c.name}</div>
                 <div class="cmd-id">/${c.id}</div>
             </div>
-            <input type="checkbox" ${selectedCommands.has(c.id) ? 'checked' : ''}>
         </div>
     `).join('');
 }
 
 function toggleCmd(id) {
-    if (selectedCommands.has(id)) {
-        selectedCommands.delete(id);
-    } else {
-        selectedCommands.add(id);
-    }
+    if (selectedCommands.has(id)) selectedCommands.delete(id);
+    else selectedCommands.add(id);
     renderCommands();
     updateStats();
 }
 
-function selectAll() {
-    allCommands.forEach(c => selectedCommands.add(c.id));
-    renderCommands();
-    updateStats();
-}
-
-function clearAll() {
-    selectedCommands.clear();
-    renderCommands();
-    updateStats();
-}
-
+function selectAll() { allCommands.forEach(c => selectedCommands.add(c.id)); renderCommands(); updateStats(); }
+function clearAll() { selectedCommands.clear(); renderCommands(); updateStats(); }
 function selectPopular() {
     selectedCommands.clear();
     ['joke','quote','fact','dice','coinflip','8ball','time','date','calc','password','menu','ping'].forEach(id => selectedCommands.add(id));
-    renderCommands();
-    updateStats();
+    renderCommands(); updateStats();
 }
 
 function updateStats() {
@@ -304,47 +276,82 @@ function updateStats() {
     document.getElementById('totalCount').textContent = allCommands.length;
 }
 
+// Custom commands
+function renderCustom() {
+    const list = document.getElementById('customList');
+    const entries = Object.entries(customCommands);
+    if (!entries.length) {
+        list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No custom commands yet. Add one below.</div>';
+        return;
+    }
+    list.innerHTML = entries.map(([k, v]) => `
+        <div class="custom-row">
+            <input type="text" value="${k}" onchange="renameCustom('${k}', this.value)" placeholder="command name" style="max-width:150px;" />
+            <span style="color:#555;">→</span>
+            <input type="text" value="${v.replace(/"/g, '&quot;')}" onchange="updateCustom('${k}', this.value)" placeholder="reply text" />
+            <button onclick="removeCustom('${k}')">×</button>
+        </div>
+    `).join('');
+}
+
+function addCustom() {
+    let id = prompt('Command name (no spaces, no slash):');
+    if (!id) return;
+    id = id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!id) return;
+    if (customCommands[id]) { alert('Command already exists'); return; }
+    customCommands[id] = 'Your reply here';
+    renderCustom();
+}
+function updateCustom(key, val) { customCommands[key] = val; }
+function renameCustom(oldKey, newKey) {
+    newKey = newKey.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!newKey || newKey === oldKey) return;
+    customCommands[newKey] = customCommands[oldKey];
+    delete customCommands[oldKey];
+    renderCustom();
+}
+function removeCustom(key) { delete customCommands[key]; renderCustom(); }
+
+// Analytics
+async function loadAnalytics() {
+    try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
+        document.getElementById('totalUses').textContent = data.total || 0;
+        const list = document.getElementById('analyticList');
+        if (!data.top.length) {
+            list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No usage yet. Use your bot to see stats here.</div>';
+            return;
+        }
+        list.innerHTML = data.top.map((row, i) => `
+            <div class="analytic-row">
+                <span class="rank">#${i + 1}</span>
+                <span class="cmd-name">/${row.command}</span>
+                <span class="count">${row.count} uses</span>
+            </div>
+        `).join('');
+    } catch (e) {}
+}
+
 async function save() {
     const token = document.getElementById('botToken').value.trim();
+    const welcome = document.getElementById('welcomeMessage').value.trim();
     const selected = [...selectedCommands];
 
-    const st = document.getElementById('botStatus');
-
-    if (!token) {
-        st.className = 'status-msg err';
-        st.style.display = 'block';
-        st.textContent = '❌ Paste your bot token first';
-        return;
-    }
-    if (!selected.length) {
-        st.className = 'status-msg err';
-        st.style.display = 'block';
-        st.textContent = '❌ Pick at least one command';
-        return;
-    }
-
-    st.className = 'status-msg';
-    st.style.display = 'block';
-    st.textContent = '⏳ Saving...';
+    if (!token) return alert('Paste your bot token first');
+    if (!selected.length && !Object.keys(customCommands).length) return alert('Pick at least one command or add a custom one');
 
     try {
         const res = await fetch('/api/bot/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bot_token: token, enabled_commands: selected })
+            body: JSON.stringify({ bot_token: token, enabled_commands: selected, welcome_message: welcome, custom_commands: customCommands })
         });
         const data = await res.json();
-        if (data.error) {
-            st.className = 'status-msg err';
-            st.textContent = '❌ ' + data.error;
-            return;
-        }
-        st.className = 'status-msg ok';
-        st.innerHTML = `✅ Bot live: <strong>@${data.username}</strong> — open Telegram and try /start`;
-    } catch (e) {
-        st.className = 'status-msg err';
-        st.textContent = '❌ Network error';
-    }
+        if (data.error) return alert('Error: ' + data.error);
+        alert('✅ Bot live! @' + data.username + ' — try /start on Telegram');
+    } catch (e) { alert('Network error'); }
 }
 
 async function logout() {
