@@ -6,62 +6,188 @@
 <title>Dashboard</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
-.container { max-width:900px; margin:0 auto; }
-.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:1px solid #222; }
-h1 { color:#00c853; }
-.btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
-.btn.outline { background:transparent; border:1px solid #444; color:#ccc; }
+body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; min-height:100vh; }
+.container { max-width:1000px; margin:0 auto; }
+
+/* Header */
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:1px solid #222; flex-wrap:wrap; gap:10px; }
+h1 { color:#00c853; font-size:1.6rem; }
+.user-info { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
+.user-email { color:#888; font-size:0.85rem; }
+.btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s; }
+.btn:hover { background:#00e676; }
+.btn.outline { background:transparent; border:1px solid #333; color:#ccc; }
+.btn.outline:hover { border-color:#00c853; color:#00c853; }
+.btn.small { padding:8px 14px; font-size:0.8rem; }
+
+/* Cards */
 .card { background:#121212; border:1px solid #222; padding:25px; border-radius:12px; margin-bottom:20px; }
-.card h2 { color:#00c853; font-size:1.1rem; margin-bottom:15px; }
-input[type=text], input[type=password] { width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.95rem; }
+.card h2 { color:#00c853; font-size:1.05rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.card .subtitle { color:#666; font-size:0.8rem; margin-bottom:18px; }
+
+/* Inputs */
+input[type=text], input[type=password] { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.95rem; font-family:'Courier New',monospace; }
 input:focus { outline:none; border-color:#00c853; }
-.hint { color:#666; font-size:0.8rem; margin-top:8px; }
-.cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:10px; max-height:400px; overflow-y:auto; padding-right:10px; }
-.cmd { display:flex; align-items:center; gap:10px; padding:10px; background:#0a0a0a; border:1px solid #222; border-radius:8px; cursor:pointer; }
-.cmd:hover { border-color:#00c853; }
-.cmd input[type=checkbox] { width:auto; }
-.cmd-label { font-size:0.85rem; }
-.info { background:#0a0a0a; border:1px solid #222; padding:15px; border-radius:8px; margin-top:15px; font-size:0.9rem; }
-.info strong { color:#00c853; }
-.status { padding:4px 12px; border-radius:20px; font-size:0.8rem; display:inline-block; margin-left:10px; }
-.status.on { background:rgba(0,200,83,0.2); color:#00c853; }
-.status.off { background:rgba(255,68,68,0.2); color:#ff4444; }
+
+/* Stats bar */
+.stats-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; }
+.stat { background:#0a0a0a; border:1px solid #222; padding:8px 14px; border-radius:20px; font-size:0.75rem; color:#888; }
+.stat strong { color:#00c853; }
+
+/* Search */
+.search-box { margin-bottom:15px; position:relative; }
+.search-box input { padding-left:40px; }
+.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#555; }
+
+/* Category filter */
+.filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px; }
+.filter-tab { padding:6px 14px; background:#0a0a0a; border:1px solid #222; border-radius:20px; font-size:0.75rem; color:#888; cursor:pointer; transition:0.2s; }
+.filter-tab:hover { border-color:#00c853; color:#00c853; }
+.filter-tab.active { background:#00c853; border-color:#00c853; color:#000; font-weight:bold; }
+
+/* Command grid */
+.cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; max-height:500px; overflow-y:auto; padding-right:5px; }
+.cmd-grid::-webkit-scrollbar { width:6px; }
+.cmd-grid::-webkit-scrollbar-track { background:#0a0a0a; }
+.cmd-grid::-webkit-scrollbar-thumb { background:#222; border-radius:3px; }
+.cmd-grid::-webkit-scrollbar-thumb:hover { background:#00c853; }
+
+.cmd {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 14px; background:#0a0a0a;
+    border:1px solid #1a1a1a; border-radius:10px;
+    cursor:pointer; transition:0.2s; position:relative;
+}
+.cmd:hover { border-color:#00c853; background:#0d1510; }
+.cmd.selected { border-color:#00c853; background:rgba(0,200,83,0.08); }
+.cmd.selected::after {
+    content:'✓'; position:absolute; top:8px; right:10px;
+    color:#00c853; font-weight:bold; font-size:0.9rem;
+}
+.cmd input[type=checkbox] { display:none; }
+.cmd-icon { font-size:1.3rem; flex-shrink:0; }
+.cmd-body { flex:1; min-width:0; }
+.cmd-name { color:#00c853; font-size:0.85rem; font-weight:600; margin-bottom:2px; }
+.cmd-id { color:#666; font-size:0.7rem; font-family:'Courier New',monospace; }
+
+/* Status */
+.status-msg { padding:10px; border-radius:8px; font-size:0.85rem; text-align:center; margin-top:12px; }
+.status-msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1pxpx solid rgba(0,200,83,0.3); }
+.status-msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1 solid rgba(255,68,68,0.3); }
+
+/* Selector buttons */
+.selector-actions { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.section-hint { color:#666; font-size:0.75rem; margin-top:10px; text-align:center; }
 </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>🤖 Dashboard</h1>
-        <div>
-            <span id="userEmail"></span>
-            <button class="btn outline" onclick="logout()" style="margin-left:15px;">Logout</button>
+        <h1>🤖 Bot Dashboard</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="btn outline small" onclick="logout()">Logout</button>
         </div>
     </div>
 
+    <!-- Step 1: Bot Token -->
     <div class="card">
-        <h2>1. Connect Your Bot</h2>
-        <p style="color:#888; font-size:0.9rem; margin-bottom:15px;">
-            Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code>/newbot</code> → copy the token.
-        </p>
-        <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC...)">
-        <div class="hint" id="botStatus"></div>
+        <h2>⚙️ Step 1 — Connect Your Bot</h2>
+        <div class="subtitle">
+            Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code style="color:#00c853;background:#0a0a0a;padding:2px 6px;border-radius:4px;">/newbot</code> → copy the token.
+        </div>
+        <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC-DEF...)" />
+        <div id="botStatus" class="status-msg" style="display:none;"></div>
     </div>
 
+    <!-- Step 2: Commands -->
     <div class="card">
-        <h2>2. Pick Your Commands</h2>
-        <div style="margin-bottom:10px;">
-            <button class="btn outline" onclick="selectAll()">Select All</button>
-            <button class="btn outline" onclick="clearAll()">Clear</button>
+        <h2>🎯 Step 2 — Pick Your Commands</h2>
+        <div class="subtitle">Tap any command to toggle it on/off. Only selected commands will appear in your bot.</div>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat">Selected: <strong id="selectedCount">0</strong></div>
+            <div class="stat">Total: <strong id="totalCount">0</strong></div>
         </div>
+
+        <!-- Search -->
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search commands..." oninput="filterCommands()" />
+        </div>
+
+        <!-- Category filter -->
+        <div class="filter-tabs" id="filterTabs"></div>
+
+        <!-- Selector actions -->
+        <div class="selector-actions">
+            <button class="btn outline small" onclick="selectAll()">Select All</button>
+            <button class="btn outline small" onclick="clearAll()">Clear All</button>
+            <button class="btn outline small" onclick="selectPopular()">Popular Only</button>
+        </div>
+
+        <!-- Command grid -->
         <div class="cmd-grid" id="cmdGrid"></div>
     </div>
 
-    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem;">Save & Launch Bot</button>
+    <!-- Save button -->
+    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem; margin-bottom:40px;">
+        💾 Save & Launch Bot
+    </button>
 </div>
 
 <script>
-let commands = [];
+let allCommands = [];
+let selectedCommands = new Set();
+let currentFilter = 'all';
+
+// Category mapping — commands grouped by type
+const CATEGORIES = {
+    'fun': ['joke','quote','fact','dice','coinflip','8ball','riddle','truth','dare','roast','compliment','vibe','lucky','yesno','wouldyourather'],
+    'utility': ['time','date','week','month','calc','random','password','genpass','uuid','reverse','upper','lower','len','count','spell','alternate','titlecase','slugify','shuffle','rotate','caesar','vowels'],
+    'hashing': ['sha256','md5','b64encode','b64decode','morse'],
+    'numbers': ['binary','hex','octal','primes','fibonacci','factorial','gcd'],
+    'calculators': ['bmi','tip','split','percent'],
+    'security': ['strength','scamcheck','linkcheck','sectips','phishing','randpin','otp','linuxcmd'],
+    'dates': ['age','daysuntil','countdown','unixtime'],
+    'colors': ['hexcolor','rgb'],
+    'random': ['pick','roll','rate','ship'],
+    'personal': ['mood','goal','mygoal','advice'],
+    'info': ['menu','ping']
+};
+
+const ICONS = {
+    joke:'😄', quote:'💬', fact:'🧠', dice:'🎲', coinflip:'🪙', '8ball':'🎱', riddle:'🧩', truth:'💭', dare:'🔥',
+    roast:'🔥', compliment:'💚', vibe:'✨', lucky:'🍀', yesno:'❓', wouldyourather:'🤔',
+    time:'🕐', date:'📅', week:'📆', month:'🗓️', calc:'🧮', random:'🎲', password:'🔐', genpass:'🔑',
+    uuid:'🆔', reverse:'🔄', upper:'🔠', lower:'🔡', len:'📏', count:'📊', spell:'🔤', alternate:'🔀',
+    titlecase:'📝', slugify:'🔗', shuffle:'🎲', rotate:'🔁', caesar:'🔐', vowels:'🔤',
+    sha256:'🔒', md5:'🔒', b64encode:'📤', b64decode:'📥', morse:'📡',
+    binary:'0️⃣', hex:'🔢', octal:'8️⃣', primes:'🔢', fibonacci:'🌿', factorial:'❗', gcd:'➗',
+    bmi:'⚖️', tip:'💰', split:'💵', percent:'📊',
+    strength:'🛡️', scamcheck:'🕵️', linkcheck:'🔗', sectips:'🔒', phishing:'🎣', randpin:'🔢', otp:'🔐', linuxcmd:'🐧',
+    age:'🎂', daysuntil:'⏳', countdown:'⏱️', unixtime:'⏰',
+    hexcolor:'🎨', rgb:'🌈',
+    pick:'🎯', roll:'🎲', rate:'⭐', ship:'💘',
+    mood:'💭', goal:'🎯', mygoal:'✅', advice:'💡',
+    menu:'📋', ping:'🏓'
+};
+
+const CATEGORY_LABELS = {
+    all: 'All',
+    fun: '🎮 Fun',
+    utility: '🛠️ Utility',
+    hashing: '🔒 Hashing',
+    numbers: '🔢 Numbers',
+    calculators: '🧮 Calculators',
+    security: '🛡️ Security',
+    dates: '📅 Dates',
+    colors: '🎨 Colors',
+    random: '🎲 Random',
+    personal: '💭 Personal',
+    info: 'ℹ️ Info'
+};
 
 async function loadUser() {
     try {
@@ -72,48 +198,153 @@ async function loadUser() {
 
         if (user.bot_token) {
             document.getElementById('botToken').value = user.bot_token;
-            document.getElementById('botStatus').innerHTML =
-                `✅ Bot connected: <strong>@${user.bot_username}</strong>`;
+            const st = document.getElementById('botStatus');
+            st.className = 'status-msg ok';
+            st.style.display = 'block';
+            st.innerHTML = `✅ Bot connected: <strong>@${user.bot_username}</strong>`;
         }
 
         const cmdsRes = await fetch('/api/commands');
-        commands = await cmdsRes.json();
+        allCommands = await cmdsRes.json();
+
         const enabled = JSON.parse(user.enabled_commands || '[]');
-        renderCommands(enabled);
+        selectedCommands = new Set(enabled);
+
+        renderFilterTabs();
+        renderCommands();
+        updateStats();
     } catch (e) {
         window.location.href = '/login.html';
     }
 }
 
-function renderCommands(enabled) {
-    const grid = document.getElementById('cmdGrid');
-    grid.innerHTML = commands.map(c => `
-        <label class="cmd">
-            <input type="checkbox" value="${c.id}" ${enabled.includes(c.id) ? 'checked' : ''}>
-            <span class="cmd-label">/${c.id} — ${c.name}</span>
-        </label>
+function renderFilterTabs() {
+    const tabs = document.getElementById('filterTabs');
+    tabs.innerHTML = Object.entries(CATEGORY_LABELS).map(([key, label]) => `
+        <div class="filter-tab ${key === currentFilter ? 'active' : ''}" onclick="setFilter('${key}')">${label}</div>
     `).join('');
 }
 
-function selectAll() { document.querySelectorAll('#cmdGrid input').forEach(c => c.checked = true); }
-function clearAll() { document.querySelectorAll('#cmdGrid input').forEach(c => c.checked = false); }
+function setFilter(cat) {
+    currentFilter = cat;
+    renderFilterTabs();
+    renderCommands();
+}
+
+function getCommandCategory(cmdId) {
+    for (const [cat, ids] of Object.entries(CATEGORIES)) {
+        if (ids.includes(cmdId)) return cat;
+    }
+    return 'info';
+}
+
+function filterCommands() {
+    renderCommands();
+}
+
+function renderCommands() {
+    const grid = document.getElementById('cmdGrid');
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    const filtered = allCommands.filter(c => {
+        const matchesSearch = !search || c.id.toLowerCase().includes(search) || c.name.toLowerCase().includes(search);
+        const cat = getCommandCategory(c.id);
+        const matchesCategory = currentFilter === 'all' || cat === currentFilter;
+        return matchesSearch && matchesCategory;
+    });
+
+    if (!filtered.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">No commands match your search</div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(c => `
+        <div class="cmd ${selectedCommands.has(c.id) ? 'selected' : ''}" onclick="toggleCmd('${c.id}')">
+            <span class="cmd-icon">${ICONS[c.id] || '⚡'}</span>
+            <div class="cmd-body">
+                <div class="cmd-name">${c.name}</div>
+                <div class="cmd-id">/${c.id}</div>
+            </div>
+            <input type="checkbox" ${selectedCommands.has(c.id) ? 'checked' : ''}>
+        </div>
+    `).join('');
+}
+
+function toggleCmd(id) {
+    if (selectedCommands.has(id)) {
+        selectedCommands.delete(id);
+    } else {
+        selectedCommands.add(id);
+    }
+    renderCommands();
+    updateStats();
+}
+
+function selectAll() {
+    allCommands.forEach(c => selectedCommands.add(c.id));
+    renderCommands();
+    updateStats();
+}
+
+function clearAll() {
+    selectedCommands.clear();
+    renderCommands();
+    updateStats();
+}
+
+function selectPopular() {
+    selectedCommands.clear();
+    ['joke','quote','fact','dice','coinflip','8ball','time','date','calc','password','menu','ping'].forEach(id => selectedCommands.add(id));
+    renderCommands();
+    updateStats();
+}
+
+function updateStats() {
+    document.getElementById('selectedCount').textContent = selectedCommands.size;
+    document.getElementById('totalCount').textContent = allCommands.length;
+}
 
 async function save() {
     const token = document.getElementById('botToken').value.trim();
-    const selected = [...document.querySelectorAll('#cmdGrid input:checked')].map(c => c.value);
+    const selected = [...selectedCommands];
 
-    if (!token) return alert('Paste your bot token first');
-    if (!selected.length) return alert('Pick at least one command');
+    const st = document.getElementById('botStatus');
 
-    const res = await fetch('/api/bot/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bot_token: token, enabled_commands: selected })
-    });
-    const data = await res.json();
-    if (data.error) return alert('Error: ' + data.error);
-    document.getElementById('botStatus').innerHTML = `✅ Bot launched: <strong>@${data.username}</strong>`;
-    alert('✅ Bot is live! Open Telegram and try /start');
+    if (!token) {
+        st.className = 'status-msg err';
+        st.style.display = 'block';
+        st.textContent = '❌ Paste your bot token first';
+        return;
+    }
+    if (!selected.length) {
+        st.className = 'status-msg err';
+        st.style.display = 'block';
+        st.textContent = '❌ Pick at least one command';
+        return;
+    }
+
+    st.className = 'status-msg';
+    st.style.display = 'block';
+    st.textContent = '⏳ Saving...';
+
+    try {
+        const res = await fetch('/api/bot/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bot_token: token, enabled_commands: selected })
+        });
+        const data = await res.json();
+        if (data.error) {
+            st.className = 'status-msg err';
+            st.textContent = '❌ ' + data.error;
+            return;
+        }
+        st.className = 'status-msg ok';
+        st.innerHTML = `✅ Bot live: <strong>@${data.username}</strong> — open Telegram and try /start`;
+    } catch (e) {
+        st.className = 'status-msg err';
+        st.textContent = '❌ Network error';
+    }
 }
 
 async function logout() {
