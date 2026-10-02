@@ -8,20 +8,26 @@ const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
 const path = require('path');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@xitexe.com';
+const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+
+// ===== EMAIL TRANSPORTER =====
+const transporter = (process.env.SMTP_USER && process.env.SMTP_PASS) ? nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+}) : null;
 
 // ===== DATABASE =====
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('render.com')
-        ? { rejectUnauthorized: false }
-        : false
+        ? { rejectUnauthorized: false } : false
 });
 
-// Init tables
 (async () => {
     try {
         await pool.query(`
@@ -37,6 +43,9 @@ const pool = new Pool({
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
         `);
+        // Add reset columns if missing
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`);
         await pool.query(`
             CREATE TABLE IF NOT EXISTS command_usage (
                 id SERIAL PRIMARY KEY,
@@ -58,7 +67,6 @@ const pool = new Pool({
     }
 })();
 
-// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -174,7 +182,6 @@ const DATA = {
 
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
-// ===== BOT BUILDER =====
 function buildBot(user) {
     if (activeBots.has(user.id)) {
         try { activeBots.get(user.id).stop(); } catch (e) {}
@@ -189,7 +196,6 @@ function buildBot(user) {
         pool.query(`INSERT INTO command_usage (user_id, command) VALUES ($1, $2)`, [user.id, cmd]).catch(() => {});
     };
 
-    // Build inline keyboard menu
     const buildKeyboard = () => {
         const rows = [];
         for (let i = 0; i < enabled.length; i += 3) {
@@ -210,18 +216,15 @@ function buildBot(user) {
         ctx.reply('🤖 *Available commands:*\n\nTap any button to run it.', { parse_mode: 'Markdown', ...buildKeyboard() });
     });
 
-    // Handle button taps
     bot.action(/^cmd_(.+)$/, async ctx => {
         const cmd = ctx.match[1];
         if (!enabled.includes(cmd)) return ctx.answerCbQuery('Not available');
         await ctx.answerCbQuery();
         track(cmd);
-        // Fake a message to reuse the switch logic
         ctx.message = { text: '/' + cmd };
         await handleCommand(cmd, ctx, '');
     });
 
-    // Register text commands
     enabled.forEach(cmd => {
         bot.command(cmd, async ctx => {
             track(cmd);
@@ -230,7 +233,6 @@ function buildBot(user) {
         });
     });
 
-    // Custom commands
     Object.keys(customCmds).forEach(cid => {
         bot.command(cid, ctx => {
             track('custom_' + cid);
@@ -246,7 +248,6 @@ function buildBot(user) {
     activeBots.set(user.id, bot);
 }
 
-// ===== COMMAND HANDLER =====
 async function handleCommand(cmd, ctx, arg) {
     try {
         switch (cmd) {
@@ -324,8 +325,7 @@ async function handleCommand(cmd, ctx, arg) {
             }
             case 'vowels': {
                 const t = arg.toLowerCase();
-                const v = (t.match(/[aeiou]/g) || []).length;
-                return ctx.reply(`🔤 Vowels: ${v}`);
+                return ctx.reply(`🔤 Vowels: ${(t.match(/[aeiou]/g) || []).length}`);
             }
             case 'morse': {
                 const t = arg.toLowerCase();
@@ -480,7 +480,6 @@ async function handleCommand(cmd, ctx, arg) {
     } catch (e) { ctx.reply('❌ Error: ' + e.message); }
 }
 
-// ===== LAUNCH EXISTING BOTS =====
 pool.query(`SELECT * FROM users WHERE bot_token IS NOT NULL`).then(res => {
     res.rows.forEach(user => buildBot(user));
     console.log(`🚀 Launched ${res.rows.length} bots`);
@@ -499,153 +498,3 @@ app.post('/api/signup', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         if (e.code === '23505') return res.status(400).json({ error: 'Email already registered' });
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const r = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
-        const user = r.rows[0];
-        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.status(400).json({ error: 'Invalid email or password' });
-        req.session.userId = user.id;
-        req.session.isAdmin = user.email === ADMIN_EMAIL;
-        res.json({ success: true, isAdmin: req.session.isAdmin });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
-
-app.get('/api/me', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    try {
-        const r = await pool.query(`SELECT id, email, bot_username, enabled_commands, welcome_message, custom_commands FROM users WHERE id = $1`, [req.session.userId]);
-        if (!r.rows[0]) return res.status(404).json({ error: 'User not found' });
-        const user = r.rows[0];
-        user.isAdmin = user.email === ADMIN_EMAIL;
-        res.json(user);
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.get('/api/commands', (req, res) => res.json(AVAILABLE_COMMANDS));
-app.get('/api/templates', (req, res) => res.json(TEMPLATES));
-
-app.post('/api/bot/settings', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    const { bot_token, enabled_commands, welcome_message, custom_commands } = req.body;
-    if (!bot_token || !bot_token.match(/^\d+:[A-Za-z0-9_-]+$/)) return res.status(400).json({ error: 'Invalid bot token' });
-    try {
-        const r = await axios.get(`https://api.telegram.org/bot${bot_token}/getMe`);
-        if (!r.data.ok) return res.status(400).json({ error: 'Invalid bot token' });
-        const username = r.data.result.username;
-        await pool.query(
-            `UPDATE users SET bot_token = $1, bot_username = $2, enabled_commands = $3, welcome_message = $4, custom_commands = $5 WHERE id = $6`,
-            [bot_token, username, JSON.stringify(enabled_commands), welcome_message || null, JSON.stringify(custom_commands || {}), req.session.userId]
-        );
-        const ur = await pool.query(`SELECT * FROM users WHERE id = $1`, [req.session.userId]);
-        buildBot(ur.rows[0]);
-        res.json({ success: true, username });
-    } catch (e) {
-        res.status(400).json({ error: 'Could not verify bot token' });
-    }
-});
-
-app.get('/api/analytics', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    try {
-        const top = await pool.query(`SELECT command, COUNT(*) as count FROM command_usage WHERE user_id = $1 GROUP BY command ORDER BY count DESC LIMIT 10`, [req.session.userId]);
-        const total = await pool.query(`SELECT COUNT(*) as total FROM command_usage WHERE user_id = $1`, [req.session.userId]);
-        res.json({ top: top.rows, total: parseInt(total.rows[0]?.total || 0) });
-    } catch (e) { res.status(500).json({ error: 'DB error' }); }
-});
-
-// Profile routes
-app.post('/api/profile/email', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    const { email, password } = req.body;
-    try {
-        const r = await pool.query(`SELECT * FROM users WHERE id = $1`, [req.session.userId]);
-        const match = await bcrypt.compare(password, r.rows[0].password);
-        if (!match) return res.status(400).json({ error: 'Incorrect password' });
-        await pool.query(`UPDATE users SET email = $1 WHERE id = $2`, [email, req.session.userId]);
-        res.json({ success: true });
-    } catch (e) {
-        if (e.code === '23505') return res.status(400).json({ error: 'Email already in use' });
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.post('/api/profile/password', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    const { oldPassword, newPassword } = req.body;
-    if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'New password min 6 chars' });
-    try {
-        const r = await pool.query(`SELECT * FROM users WHERE id = $1`, [req.session.userId]);
-        const match = await bcrypt.compare(oldPassword, r.rows[0].password);
-        if (!match) return res.status(400).json({ error: 'Incorrect current password' });
-        const hash = await bcrypt.hash(newPassword, 10);
-        await pool.query(`UPDATE users SET password = $1 WHERE id = $2`, [hash, req.session.userId]);
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-app.post('/api/profile/delete', async (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    const { password } = req.body;
-    try {
-        const r = await pool.query(`SELECT * FROM users WHERE id = $1`, [req.session.userId]);
-        const match = await bcrypt.compare(password, r.rows[0].password);
-        if (!match) return res.status(400).json({ error: 'Incorrect password' });
-        if (activeBots.has(req.session.userId)) { try { activeBots.get(req.session.userId).stop(); } catch (e) {} activeBots.delete(req.session.userId); }
-        await pool.query(`DELETE FROM users WHERE id = $1`, [req.session.userId]);
-        await pool.query(`DELETE FROM command_usage WHERE user_id = $1`, [req.session.userId]);
-        req.session.destroy();
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Server error' }); }
-});
-
-// Admin routes
-function requireAdmin(req, res, next) {
-    if (!req.session.userId || !req.session.isAdmin) return res.status(403).json({ error: 'Admin only' });
-    next();
-}
-
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
-    try {
-        const r = await pool.query(`SELECT id, email, bot_username, created_at, (SELECT COUNT(*) FROM command_usage WHERE user_id = users.id) as usage_count FROM users ORDER BY created_at DESC`);
-        res.json(r.rows);
-    } catch (e) { res.status(500).json({ error: 'DB error' }); }
-});
-
-app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-    const id = parseInt(req.params.id);
-    if (activeBots.has(id)) { try { activeBots.get(id).stop(); } catch (e) {} activeBots.delete(id); }
-    try {
-        await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
-        await pool.query(`DELETE FROM command_usage WHERE user_id = $1`, [id]);
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Delete failed' }); }
-});
-
-app.post('/api/admin/restart/:id', requireAdmin, async (req, res) => {
-    try {
-        const r = await pool.query(`SELECT * FROM users WHERE id = $1`, [parseInt(req.params.id)]);
-        if (!r.rows[0]) return res.status(404).json({ error: 'User not found' });
-        if (r.rows[0].bot_token) buildBot(r.rows[0]);
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Restart failed' }); }
-});
-
-app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-    try {
-        const u = await pool.query(`SELECT COUNT(*) FROM users`);
-        const b = await pool.query(`SELECT COUNT(*) FROM users WHERE bot_token IS NOT NULL`);
-        const c = await pool.query(`SELECT COUNT(*) FROM command_usage`);
-        res.json({ users: parseInt(u.rows[0].count), bots: parseInt(b.rows[0].count), commands_used: parseInt(c.rows[0].count) });
-    } catch (e) { res.status(500).json({ error: 'DB error' }); }
-});
-
-app.listen(PORT, '0.0.0.0', () => console.log(`🌐 Server running on port ${PORT}`));
