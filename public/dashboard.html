@@ -7,9 +7,9 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; min-height:100vh; }
-.container { max-width:1100px; margin:0 auto; }
-.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:1px solid #222; flex-wrap:wrap; gap:10px; }
-h1 { color:#00c853; font-size:1.6rem; }
+.container { max-width:1200px; margin:0 auto; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:20px; border-bottom:1px solid #222; flex-wrap:wrap; gap:10px; }
+h1 { color:#00c853; font-size:1.5rem; }
 .user-info { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .user-email { color:#888; font-size:0.85rem; }
 .btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s; }
@@ -17,36 +17,38 @@ h1 { color:#00c853; font-size:1.6rem; }
 .btn.outline { background:transparent; border:1px solid #333; color:#ccc; }
 .btn.outline:hover { border-color:#00c853; color:#00c853; }
 .btn.small { padding:8px 14px; font-size:0.8rem; }
-.tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; border-bottom:1px solid #222; padding-bottom:0; }
-.tab { padding:12px 20px; background:transparent; color:#888; border:none; border-bottom:2px solid transparent; font-size:0.9rem; font-weight:600; cursor:pointer; transition:0.2s; }
+.tabs { display:flex; gap:4px; margin-bottom:20px; flex-wrap:wrap; border-bottom:1px solid #222; }
+.tab { padding:12px 18px; background:transparent; color:#888; border:none; border-bottom:2px solid transparent; font-size:0.88rem; font-weight:600; cursor:pointer; transition:0.2s; }
 .tab:hover { color:#ccc; }
 .tab.active { color:#00c853; border-bottom-color:#00c853; }
-.card { background:#121212; border:1px solid #222; padding:25px; border-radius:12px; margin-bottom:20px; }
-.card h2 { color:#00c853; font-size:1.05rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
-.card .subtitle { color:#666; font-size:0.8rem; margin-bottom:18px; }
-input[type=text], input[type=password], textarea { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.95rem; font-family:inherit; }
-textarea { font-family:'Courier New',monospace; resize:vertical; min-height:100px; }
+.card { background:#121212; border:1px solid #222; padding:22px; border-radius:12px; margin-bottom:18px; }
+.card h2 { color:#00c853; font-size:1rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+.card .subtitle { color:#666; font-size:0.8rem; margin-bottom:16px; }
+input[type=text], input[type=password], input[type=email], textarea { width:100%; padding:12px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:0.92rem; font-family:inherit; }
+textarea { font-family:'Courier New',monospace; resize:vertical; min-height:90px; }
 input:focus, textarea:focus { outline:none; border-color:#00c853; }
+.templates { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:16px; }
+.template-btn { padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:10px; color:#ccc; cursor:pointer; font-size:0.85rem; font-weight:600; transition:0.2s; text-align:center; }
+.template-btn:hover { border-color:#00c853; color:#00c853; }
 .stats-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; }
 .stat { background:#0a0a0a; border:1px solid #222; padding:8px 14px; border-radius:20px; font-size:0.75rem; color:#888; }
 .stat strong { color:#00c853; }
-.filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px; }
-.filter-tab { padding:6px 14px; background:#0a0a0a; border:1px solid #222; border-radius:20px; font-size:0.75rem; color:#888; cursor:pointer; transition:0.2s; }
+.filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.filter-tab { padding:6px 12px; background:#0a0a0a; border:1px solid #222; border-radius:20px; font-size:0.72rem; color:#888; cursor:pointer; transition:0.2s; }
 .filter-tab:hover { border-color:#00c853; color:#00c853; }
 .filter-tab.active { background:#00c853; border-color:#00c853; color:#000; font-weight:bold; }
-.cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; max-height:500px; overflow-y:auto; padding-right:5px; }
+.cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; max-height:450px; overflow-y:auto; padding-right:5px; }
 .cmd-grid::-webkit-scrollbar { width:6px; }
-.cmd-grid::-webkit-scrollbar-track { background:#0a0a0a; }
 .cmd-grid::-webkit-scrollbar-thumb { background:#222; border-radius:3px; }
-.cmd { display:flex; align-items:center; gap:12px; padding:12px 14px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:10px; cursor:pointer; transition:0.2s; position:relative; }
+.cmd { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:9px; cursor:pointer; transition:0.2s; position:relative; }
 .cmd:hover { border-color:#00c853; background:#0d1510; }
 .cmd.selected { border-color:#00c853; background:rgba(0,200,83,0.08); }
-.cmd.selected::after { content:'✓'; position:absolute; top:8px; right:10px; color:#00c853; font-weight:bold; font-size:0.9rem; }
-.cmd-icon { font-size:1.3rem; flex-shrink:0; }
+.cmd.selected::after { content:'✓'; position:absolute; top:6px; right:8px; color:#00c853; font-weight:bold; font-size:0.8rem; }
+.cmd-icon { font-size:1.2rem; }
 .cmd-body { flex:1; min-width:0; }
-.cmd-name { color:#00c853; font-size:0.85rem; font-weight:600; margin-bottom:2px; }
-.cmd-id { color:#666; font-size:0.7rem; font-family:'Courier New',monospace; }
-.status-msg { padding:10px; border-radius:8px; font-size:0.85rem; text-align:center; margin-top:12px; }
+.cmd-name { color:#00c853; font-size:0.8rem; font-weight:600; }
+.cmd-id { color:#666; font-size:0.68rem; font-family:'Courier New',monospace; }
+.status-msg { padding:10px; border-radius:8px; font-size:0.82rem; text-align:center; margin-top:12px; }
 .status-msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1px solid rgba(0,200,83,0.3); }
 .status-msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.3); }
 .tab-panel { display:none; }
@@ -59,6 +61,18 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
 .analytic-row .rank { color:#666; font-weight:bold; min-width:30px; }
 .analytic-row .cmd-name { color:#00c853; flex:1; font-family:'Courier New',monospace; }
 .analytic-row .count { color:#888; }
+
+/* Bot preview panel */
+.preview-wrap { display:grid; grid-template-columns:1fr 340px; gap:20px; }
+@media (max-width: 900px) { .preview-wrap { grid-template-columns:1fr; } }
+.preview-phone { background:#0a0a0a; border:2px solid #222; border-radius:20px; padding:15px; height:500px; display:flex; flex-direction:column; }
+.preview-header { padding:10px 12px; border-bottom:1px solid #1a1a1a; color:#00c853; font-weight:bold; font-size:0.9rem; display:flex; align-items:center; gap:8px; margin:-15px -15px 10px -15px; border-radius:18px 18px 0 0; background:#0d0d0d; }
+.preview-chat { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:5px 0; }
+.preview-msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:0.82rem; line-height:1.4; word-wrap:break-word; }
+.preview-msg.bot { background:#1a2a1f; color:#e0e0e0; align-self:flex-start; border-bottom-left-radius:3px; }
+.preview-msg.user { background:#00c853; color:#000; align-self:flex-end; border-bottom-right-radius:3px; font-weight:600; }
+.preview-input { padding:10px; background:#0d0d0d; border-radius:20px; margin-top:10px; color:#666; font-size:0.8rem; text-align:center; }
+.preview-empty { color:#555; text-align:center; padding:30px 10px; font-size:0.85rem; }
 </style>
 </head>
 <body>
@@ -68,84 +82,96 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
         <div class="user-info">
             <span class="user-email" id="userEmail"></span>
             <button class="btn outline small" id="adminBtn" style="display:none;" onclick="window.location.href='/admin.html'">👑 Admin</button>
+            <button class="btn outline small" onclick="window.location.href='/profile.html'">Profile</button>
             <button class="btn outline small" onclick="logout()">Logout</button>
         </div>
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('setup')">⚙️ Setup</button>
-        <button class="tab" onclick="switchTab('commands')">🎯 Commands</button>
-        <button class="tab" onclick="switchTab('custom')">✨ Custom</button>
-        <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
+        <button class="tab active" onclick="switchTab(event,'setup')">⚙️ Setup</button>
+        <button class="tab" onclick="switchTab(event,'commands')">🎯 Commands</button>
+        <button class="tab" onclick="switchTab(event,'custom')">✨ Custom</button>
+        <button class="tab" onclick="switchTab(event,'analytics')">📊 Analytics</button>
     </div>
 
-    <!-- TAB: SETUP -->
+    <!-- SETUP -->
     <div class="tab-panel active" id="panel-setup">
         <div class="card">
             <h2>⚙️ Bot Token</h2>
             <div class="subtitle">Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code style="color:#00c853;background:#0a0a0a;padding:2px 6px;border-radius:4px;">/newbot</code> → copy the token.</div>
             <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC-DEF...)" />
         </div>
-
         <div class="card">
             <h2>👋 Welcome Message</h2>
             <div class="subtitle">Custom greeting when someone sends /start. Leave blank for default.</div>
-            <textarea id="welcomeMessage" placeholder="👋 Hey there! Welcome to my bot. Try /menu to see what I can do!"></textarea>
+            <textarea id="welcomeMessage" placeholder="👋 Hey there! Welcome to my bot. Tap /menu to see what I can do!"></textarea>
         </div>
     </div>
 
-    <!-- TAB: COMMANDS -->
+    <!-- COMMANDS -->
     <div class="tab-panel" id="panel-commands">
-        <div class="card">
-            <h2>🎯 Pick Your Commands</h2>
-            <div class="subtitle">Tap any command to toggle it on/off.</div>
+        <div class="preview-wrap">
+            <div>
+                <div class="card">
+                    <h2>🎯 Pick Your Commands</h2>
+                    <div class="subtitle">Tap any command to toggle it on/off.</div>
 
-            <div class="stats-bar">
-                <div class="stat">Selected: <strong id="selectedCount">0</strong></div>
-                <div class="stat">Total: <strong id="totalCount">0</strong></div>
+                    <div style="color:#888;font-size:0.75rem;margin-bottom:8px;">⚡ Quick templates:</div>
+                    <div class="templates" id="templateBtns"></div>
+
+                    <div class="stats-bar">
+                        <div class="stat">Selected: <strong id="selectedCount">0</strong></div>
+                        <div class="stat">Total: <strong id="totalCount">0</strong></div>
+                    </div>
+
+                    <input type="text" id="searchInput" placeholder="🔍 Search commands..." oninput="renderCommands()" style="margin-bottom:12px;" />
+
+                    <div class="filter-tabs" id="filterTabs"></div>
+
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                        <button class="btn outline small" onclick="selectAll()">Select All</button>
+                        <button class="btn outline small" onclick="clearAll()">Clear All</button>
+                        <button class="btn outline small" onclick="selectPopular()">Popular Only</button>
+                    </div>
+
+                    <div class="cmd-grid" id="cmdGrid"></div>
+                </div>
             </div>
-
-            <div class="search-box" style="margin-bottom:15px;position:relative;">
-                <input type="text" id="searchInput" placeholder="🔍 Search commands..." oninput="renderCommands()" style="padding-left:14px;" />
+            <div>
+                <div class="card" style="padding:15px;">
+                    <h2 style="font-size:0.9rem;">📱 Bot Preview</h2>
+                    <div class="subtitle" style="margin-bottom:10px;">What your bot looks like</div>
+                    <div class="preview-phone">
+                        <div class="preview-header">🤖 <span id="previewName">Your Bot</span></div>
+                        <div class="preview-chat" id="previewChat"></div>
+                        <div class="preview-input">/menu</div>
+                    </div>
+                </div>
             </div>
-
-            <div class="filter-tabs" id="filterTabs"></div>
-
-            <div class="selector-actions" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-                <button class="btn outline small" onclick="selectAll()">Select All</button>
-                <button class="btn outline small" onclick="clearAll()">Clear All</button>
-                <button class="btn outline small" onclick="selectPopular()">Popular Only</button>
-            </div>
-
-            <div class="cmd-grid" id="cmdGrid"></div>
         </div>
     </div>
 
-    <!-- TAB: CUSTOM COMMANDS -->
+    <!-- CUSTOM -->
     <div class="tab-panel" id="panel-custom">
         <div class="card">
             <h2>✨ Custom Commands</h2>
-            <div class="subtitle">Create your own commands. Example: <code style="color:#00c853;">greet</code> → <code style="color:#00c853;">Hello friend!</code>. User sends /greet and bot replies.</div>
+            <div class="subtitle">Create your own. Example: <code style="color:#00c853;">greet</code> → <code style="color:#00c853;">Hello friend!</code>. User sends /greet, bot replies.</div>
             <div id="customList"></div>
             <button class="custom-add" onclick="addCustom()">+ Add Command</button>
         </div>
     </div>
 
-    <!-- TAB: ANALYTICS -->
+    <!-- ANALYTICS -->
     <div class="tab-panel" id="panel-analytics">
         <div class="card">
             <h2>📊 Analytics</h2>
             <div class="subtitle">Your most-used commands.</div>
-            <div class="stats-bar">
-                <div class="stat">Total Uses: <strong id="totalUses">0</strong></div>
-            </div>
+            <div class="stats-bar"><div class="stat">Total Uses: <strong id="totalUses">0</strong></div></div>
             <div id="analyticList"></div>
         </div>
     </div>
 
-    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem; margin-top:20px; margin-bottom:40px;">
-        💾 Save & Launch Bot
-    </button>
+    <button class="btn" onclick="save()" style="width:100%; padding:16px; font-size:1rem; margin-top:20px; margin-bottom:40px;">💾 Save & Launch Bot</button>
 </div>
 
 <script>
@@ -153,19 +179,13 @@ let allCommands = [];
 let selectedCommands = new Set();
 let customCommands = {};
 let currentFilter = 'all';
+let templates = {};
 
 const CATEGORIES = {
-    'fun': ['joke','quote','fact','dice','coinflip','8ball','riddle','truth','dare','roast','compliment','vibe','lucky','yesno','wouldyourather'],
-    'utility': ['time','date','week','month','calc','random','password','genpass','uuid','reverse','upper','lower','len','count','spell','alternate','titlecase','slugify','shuffle','rotate','caesar','vowels'],
-    'hashing': ['sha256','md5','b64encode','b64decode','morse'],
-    'numbers': ['binary','hex','octal','primes','fibonacci','factorial','gcd'],
-    'calculators': ['bmi','tip','split','percent'],
-    'security': ['strength','scamcheck','linkcheck','sectips','phishing','randpin','otp','linuxcmd'],
-    'dates': ['age','daysuntil','countdown','unixtime'],
-    'colors': ['hexcolor','rgb'],
-    'random': ['pick','roll','rate','ship'],
-    'personal': ['mood','goal','mygoal','advice'],
-    'info': ['menu','ping']
+    fun: ['joke','quote','fact','dice','coinflip','8ball','riddle','truth','dare','roast','compliment','vibe','lucky','yesno','wouldyourather','ship','rate','advice','mood'],
+    utility: ['time','date','week','month','calc','random','password','genpass','uuid','reverse','upper','lower','len','count','spell','alternate','titlecase','slugify','shuffle','rotate','caesar','vowels','morse','binary','hex','octal','primes','fibonacci','factorial','gcd','bmi','tip','split','percent','age','daysuntil','countdown','unixtime','hexcolor','rgb','goal','mygoal'],
+    security: ['sha256','md5','b64encode','b64decode','strength','scamcheck','linkcheck','sectips','phishing','randpin','otp','linuxcmd'],
+    info: ['menu','ping']
 };
 
 const ICONS = {
@@ -183,27 +203,28 @@ const ICONS = {
     mood:'💭',goal:'🎯',mygoal:'✅',advice:'💡',menu:'📋',ping:'🏓'
 };
 
-const CATEGORY_LABELS = { all:'All', fun:'🎮 Fun', utility:'🛠️ Utility', hashing:'🔒 Hashing', numbers:'🔢 Numbers', calculators:'🧮 Calculators', security:'🛡️ Security', dates:'📅 Dates', colors:'🎨 Colors', random:'🎲 Random', personal:'💭 Personal', info:'ℹ️ Info' };
-
-let currentUser = null;
+const CATEGORY_LABELS = { all:'All', fun:'🎮 Fun', utility:'🛠️ Utility', security:'🛡️ Security', info:'ℹ️ Info' };
 
 async function loadUser() {
     try {
         const res = await fetch('/api/me');
         if (!res.ok) { window.location.href = '/login.html'; return; }
-        currentUser = await res.json();
-        document.getElementById('userEmail').textContent = currentUser.email;
-        if (currentUser.isAdmin) document.getElementById('adminBtn').style.display = 'inline-block';
-
-        if (currentUser.bot_token) document.getElementById('botToken').value = currentUser.bot_token;
-        if (currentUser.welcome_message) document.getElementById('welcomeMessage').value = currentUser.welcome_message;
+        const user = await res.json();
+        document.getElementById('userEmail').textContent = user.email;
+        if (user.isAdmin) document.getElementById('adminBtn').style.display = 'inline-block';
+        if (user.bot_token) document.getElementById('botToken').value = user.bot_token;
+        if (user.welcome_message) document.getElementById('welcomeMessage').value = user.welcome_message;
+        if (user.bot_username) document.getElementById('previewName').textContent = '@' + user.bot_username;
 
         const cmdsRes = await fetch('/api/commands');
         allCommands = await cmdsRes.json();
+        const tmplRes = await fetch('/api/templates');
+        templates = await tmplRes.json();
 
-        selectedCommands = new Set(JSON.parse(currentUser.enabled_commands || '[]'));
-        customCommands = JSON.parse(currentUser.custom_commands || '{}');
+        selectedCommands = new Set(JSON.parse(user.enabled_commands || '[]'));
+        customCommands = JSON.parse(user.custom_commands || '{}');
 
+        renderTemplates();
         renderFilterTabs();
         renderCommands();
         renderCustom();
@@ -212,11 +233,27 @@ async function loadUser() {
     } catch (e) { window.location.href = '/login.html'; }
 }
 
-function switchTab(name) {
+function switchTab(e, name) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    event.target.classList.add('active');
+    e.target.classList.add('active');
     document.getElementById('panel-' + name).classList.add('active');
+}
+
+function renderTemplates() {
+    const wrap = document.getElementById('templateBtns');
+    const icons = { fun:'🎮', utility:'🛠️', security:'🛡️' };
+    wrap.innerHTML = Object.keys(templates).map(k => `
+        <div class="template-btn" onclick="applyTemplate('${k}')">${icons[k] || '⚡'} ${k.charAt(0).toUpperCase() + k.slice(1)} Bot</div>
+    `).join('');
+}
+
+function applyTemplate(name) {
+    const cmds = templates[name];
+    if (!cmds) return;
+    cmds.forEach(c => selectedCommands.add(c));
+    renderCommands();
+    updateStats();
 }
 
 function renderFilterTabs() {
@@ -242,7 +279,7 @@ function renderCommands() {
         return matchesSearch && matchesCategory;
     });
     if (!filtered.length) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#666;">No commands match your search</div>';
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#666;">No commands match</div>';
         return;
     }
     grid.innerHTML = filtered.map(c => `
@@ -254,6 +291,7 @@ function renderCommands() {
             </div>
         </div>
     `).join('');
+    updatePreview();
 }
 
 function toggleCmd(id) {
@@ -276,44 +314,53 @@ function updateStats() {
     document.getElementById('totalCount').textContent = allCommands.length;
 }
 
-// Custom commands
+function updatePreview() {
+    const chat = document.getElementById('previewChat');
+    if (!selectedCommands.size) {
+        chat.innerHTML = '<div class="preview-empty">Pick commands to see a preview</div>';
+        return;
+    }
+    const cmds = [...selectedCommands].slice(0, 6);
+    chat.innerHTML = cmds.map(c => `
+        <div class="preview-msg bot">/${c} — preview</div>
+    `).join('');
+}
+
 function renderCustom() {
     const list = document.getElementById('customList');
     const entries = Object.entries(customCommands);
     if (!entries.length) {
-        list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No custom commands yet. Add one below.</div>';
+        list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No custom commands yet.</div>';
         return;
     }
     list.innerHTML = entries.map(([k, v]) => `
         <div class="custom-row">
-            <input type="text" value="${k}" onchange="renameCustom('${k}', this.value)" placeholder="command name" style="max-width:150px;" />
+            <input type="text" value="${k}" onchange="renameCustom('${k}', this.value)" placeholder="name" style="max-width:150px;" />
             <span style="color:#555;">→</span>
-            <input type="text" value="${v.replace(/"/g, '&quot;')}" onchange="updateCustom('${k}', this.value)" placeholder="reply text" />
+            <input type="text" value="${v.replace(/"/g, '&quot;')}" onchange="updateCustom('${k}', this.value)" placeholder="reply" />
             <button onclick="removeCustom('${k}')">×</button>
         </div>
     `).join('');
 }
 
 function addCustom() {
-    let id = prompt('Command name (no spaces, no slash):');
+    let id = prompt('Command name (no spaces):');
     if (!id) return;
     id = id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-    if (!id) return;
-    if (customCommands[id]) { alert('Command already exists'); return; }
+    if (!id || customCommands[id]) return;
     customCommands[id] = 'Your reply here';
     renderCustom();
 }
-function updateCustom(key, val) { customCommands[key] = val; }
-function renameCustom(oldKey, newKey) {
-    newKey = newKey.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-    if (!newKey || newKey === oldKey) return;
-    customCommands[newKey] = customCommands[oldKey];
-    delete customCommands[oldKey];
+function updateCustom(k, v) { customCommands[k] = v; }
+function renameCustom(oldK, newK) {
+    newK = newK.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!newK || newK === oldK) return;
+    customCommands[newK] = customCommands[oldK];
+    delete customCommands[oldK];
     renderCustom();
 }
-function removeCustom(key) { delete customCommands[key]; renderCustom(); }
+function removeCustom(k) { delete customCommands[k]; renderCustom(); }
 
-// Analytics
 async function loadAnalytics() {
     try {
         const res = await fetch('/api/analytics');
@@ -321,7 +368,7 @@ async function loadAnalytics() {
         document.getElementById('totalUses').textContent = data.total || 0;
         const list = document.getElementById('analyticList');
         if (!data.top.length) {
-            list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No usage yet. Use your bot to see stats here.</div>';
+            list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No usage yet.</div>';
             return;
         }
         list.innerHTML = data.top.map((row, i) => `
@@ -338,10 +385,7 @@ async function save() {
     const token = document.getElementById('botToken').value.trim();
     const welcome = document.getElementById('welcomeMessage').value.trim();
     const selected = [...selectedCommands];
-
     if (!token) return alert('Paste your bot token first');
-    if (!selected.length && !Object.keys(customCommands).length) return alert('Pick at least one command or add a custom one');
-
     try {
         const res = await fetch('/api/bot/settings', {
             method: 'POST',
@@ -350,7 +394,8 @@ async function save() {
         });
         const data = await res.json();
         if (data.error) return alert('Error: ' + data.error);
-        alert('✅ Bot live! @' + data.username + ' — try /start on Telegram');
+        document.getElementById('previewName').textContent = '@' + data.username;
+        alert('✅ Bot live! @' + data.username);
     } catch (e) { alert('Network error'); }
 }
 
