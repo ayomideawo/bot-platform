@@ -15,7 +15,7 @@ input:focus { outline:none; border-color:#00c853; }
 button { width:100%; padding:14px; background:#00c853; color:#000; border:none; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; }
 button:hover { background:#00e676; }
 .error { color:#ff4444; font-size:0.85rem; margin-top:10px; text-align:center; }
-.link { text-align:center; margin-top:20px; font-size:0.9rem; color:#888; }
+.link { text-align:center; margin-top:15px; font-size:0.9rem; color:#888; }
 .link a { color:#00c853; text-decoration:none; }
 </style>
 </head>
@@ -28,6 +28,7 @@ button:hover { background:#00e676; }
     <button onclick="login()">Login</button>
     <div class="error" id="error"></div>
     <div class="link">No account? <a href="/signup.html">Sign up</a></div>
+    <div class="link"><a href="#" onclick="forgotPassword(); return false;">Forgot password?</a></div>
 </div>
 <script>
 async function login() {
@@ -45,6 +46,22 @@ async function login() {
         if (data.error) { err.textContent = data.error; return; }
         window.location.href = '/dashboard.html';
     } catch (e) { err.textContent = 'Network error'; }
+}
+
+async function forgotPassword() {
+    const email = prompt('Enter your account email to receive a reset link:');
+    if (!email) return;
+    try {
+        const res = await fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        alert(data.message || 'If that email is registered, a reset link has been sent.');
+    } catch (e) {
+        alert('Network error. Please try again.');
+    }
 }
 </script>
 </body>
