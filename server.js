@@ -10,6 +10,7 @@ const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@xitexe.com';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,6 +22,7 @@ app.use(session({
     cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
+// ===== DATABASE =====
 const db = new sqlite3.Database('./platform.db');
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -30,110 +32,84 @@ db.serialize(() => {
         bot_token TEXT,
         bot_username TEXT,
         enabled_commands TEXT DEFAULT '["joke","fact","dice","time","calc","password","quote","coinflip","8ball","menu"]',
+        welcome_message TEXT DEFAULT NULL,
+        custom_commands TEXT DEFAULT '{}',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+    db.run(`CREATE TABLE IF NOT EXISTS command_usage (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        command TEXT NOT NULL,
+        used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    // Add new columns if missing (migration)
+    db.run(`ALTER TABLE users ADD COLUMN welcome_message TEXT DEFAULT NULL`, () => {});
+    db.run(`ALTER TABLE users ADD COLUMN custom_commands TEXT DEFAULT '{}'`, () => {});
 });
 
-// ===== AVAILABLE COMMANDS (expanded) =====
+// ===== AVAILABLE COMMANDS =====
 const AVAILABLE_COMMANDS = [
-    { id: 'joke', name: 'Random joke' },
-    { id: 'quote', name: 'Random quote' },
-    { id: 'fact', name: 'Random fact' },
-    { id: 'dice', name: 'Roll dice' },
-    { id: 'coinflip', name: 'Coin flip' },
-    { id: '8ball', name: 'Magic 8-ball' },
-    { id: 'riddle', name: 'Riddle' },
-    { id: 'truth', name: 'Truth question' },
-    { id: 'dare', name: 'Dare challenge' },
-    { id: 'roast', name: 'Roast' },
-    { id: 'compliment', name: 'Compliment' },
-    { id: 'vibe', name: 'Vibe check' },
-    { id: 'lucky', name: 'Lucky number' },
-    { id: 'yesno', name: 'Yes/No' },
-    { id: 'pick', name: 'Pick from list' },
-    { id: 'roll', name: 'Dice notation' },
+    { id: 'joke', name: 'Random joke' }, { id: 'quote', name: 'Random quote' },
+    { id: 'fact', name: 'Random fact' }, { id: 'dice', name: 'Roll dice' },
+    { id: 'coinflip', name: 'Coin flip' }, { id: '8ball', name: 'Magic 8-ball' },
+    { id: 'riddle', name: 'Riddle' }, { id: 'truth', name: 'Truth question' },
+    { id: 'dare', name: 'Dare challenge' }, { id: 'roast', name: 'Roast' },
+    { id: 'compliment', name: 'Compliment' }, { id: 'vibe', name: 'Vibe check' },
+    { id: 'lucky', name: 'Lucky number' }, { id: 'yesno', name: 'Yes/No' },
+    { id: 'pick', name: 'Pick from list' }, { id: 'roll', name: 'Dice notation' },
     { id: 'wouldyourather', name: 'Would you rather' },
-    { id: 'time', name: 'Current time' },
-    { id: 'date', name: 'Today date' },
-    { id: 'week', name: 'Day of week' },
-    { id: 'month', name: 'Current month' },
-    { id: 'calc', name: 'Calculator' },
-    { id: 'random', name: 'Random number' },
-    { id: 'password', name: 'Generate password' },
-    { id: 'genpass', name: 'Secure password' },
-    { id: 'uuid', name: 'UUID generator' },
-    { id: 'reverse', name: 'Reverse text' },
-    { id: 'upper', name: 'Uppercase' },
-    { id: 'lower', name: 'Lowercase' },
-    { id: 'len', name: 'Length counter' },
-    { id: 'count', name: 'Text stats' },
-    { id: 'spell', name: 'Spell letters' },
-    { id: 'alternate', name: 'Alternate case' },
-    { id: 'titlecase', name: 'Title Case' },
-    { id: 'slugify', name: 'Slugify text' },
-    { id: 'shuffle', name: 'Shuffle letters' },
-    { id: 'rotate', name: 'Rotate text' },
-    { id: 'caesar', name: 'Caesar cipher' },
-    { id: 'vowels', name: 'Vowel count' },
-    { id: 'morse', name: 'Text to Morse' },
-    { id: 'sha256', name: 'SHA256 hash' },
-    { id: 'md5', name: 'MD5 hash' },
-    { id: 'b64encode', name: 'Base64 encode' },
-    { id: 'b64decode', name: 'Base64 decode' },
-    { id: 'binary', name: 'To binary' },
-    { id: 'hex', name: 'To hex' },
-    { id: 'octal', name: 'To octal' },
-    { id: 'primes', name: 'Prime numbers' },
-    { id: 'fibonacci', name: 'Fibonacci' },
-    { id: 'factorial', name: 'Factorial' },
-    { id: 'gcd', name: 'GCD' },
-    { id: 'bmi', name: 'BMI calculator' },
-    { id: 'tip', name: 'Tip calculator' },
-    { id: 'split', name: 'Split bill' },
-    { id: 'percent', name: 'Percentage' },
-    { id: 'strength', name: 'Password strength' },
-    { id: 'scamcheck', name: 'Scam analysis' },
-    { id: 'linkcheck', name: 'Link safety' },
-    { id: 'sectips', name: 'Security tip' },
-    { id: 'phishing', name: 'Phishing tips' },
-    { id: 'randpin', name: 'Random PIN' },
-    { id: 'otp', name: 'OTP safety' },
-    { id: 'linuxcmd', name: 'Linux command help' },
-    { id: 'age', name: 'Age calculator' },
-    { id: 'daysuntil', name: 'Days until date' },
-    { id: 'countdown', name: 'Countdown' },
-    { id: 'unixtime', name: 'Unix timestamp' },
-    { id: 'hexcolor', name: 'Hex color info' },
-    { id: 'rgb', name: 'RGB to hex' },
-    { id: 'ship', name: 'Ship calculator' },
-    { id: 'rate', name: 'Rate something' },
-    { id: 'advice', name: 'Random advice' },
-    { id: 'mood', name: 'Mood check' },
-    { id: 'goal', name: 'Set daily goal' },
-    { id: 'mygoal', name: 'Show goal' },
-    { id: 'menu', name: 'Show menu' },
-    { id: 'ping', name: 'Check latency' }
+    { id: 'time', name: 'Current time' }, { id: 'date', name: 'Today date' },
+    { id: 'week', name: 'Day of week' }, { id: 'month', name: 'Current month' },
+    { id: 'calc', name: 'Calculator' }, { id: 'random', name: 'Random number' },
+    { id: 'password', name: 'Generate password' }, { id: 'genpass', name: 'Secure password' },
+    { id: 'uuid', name: 'UUID generator' }, { id: 'reverse', name: 'Reverse text' },
+    { id: 'upper', name: 'Uppercase' }, { id: 'lower', name: 'Lowercase' },
+    { id: 'len', name: 'Length counter' }, { id: 'count', name: 'Text stats' },
+    { id: 'spell', name: 'Spell letters' }, { id: 'alternate', name: 'Alternate case' },
+    { id: 'titlecase', name: 'Title Case' }, { id: 'slugify', name: 'Slugify text' },
+    { id: 'shuffle', name: 'Shuffle letters' }, { id: 'rotate', name: 'Rotate text' },
+    { id: 'caesar', name: 'Caesar cipher' }, { id: 'vowels', name: 'Vowel count' },
+    { id: 'morse', name: 'Text to Morse' }, { id: 'sha256', name: 'SHA256 hash' },
+    { id: 'md5', name: 'MD5 hash' }, { id: 'b64encode', name: 'Base64 encode' },
+    { id: 'b64decode', name: 'Base64 decode' }, { id: 'binary', name: 'To binary' },
+    { id: 'hex', name: 'To hex' }, { id: 'octal', name: 'To octal' },
+    { id: 'primes', name: 'Prime numbers' }, { id: 'fibonacci', name: 'Fibonacci' },
+    { id: 'factorial', name: 'Factorial' }, { id: 'gcd', name: 'GCD' },
+    { id: 'bmi', name: 'BMI calculator' }, { id: 'tip', name: 'Tip calculator' },
+    { id: 'split', name: 'Split bill' }, { id: 'percent', name: 'Percentage' },
+    { id: 'strength', name: 'Password strength' }, { id: 'scamcheck', name: 'Scam analysis' },
+    { id: 'linkcheck', name: 'Link safety' }, { id: 'sectips', name: 'Security tip' },
+    { id: 'phishing', name: 'Phishing tips' }, { id: 'randpin', name: 'Random PIN' },
+    { id: 'otp', name: 'OTP safety' }, { id: 'linuxcmd', name: 'Linux command help' },
+    { id: 'age', name: 'Age calculator' }, { id: 'daysuntil', name: 'Days until date' },
+    { id: 'countdown', name: 'Countdown' }, { id: 'unixtime', name: 'Unix timestamp' },
+    { id: 'hexcolor', name: 'Hex color info' }, { id: 'rgb', name: 'RGB to hex' },
+    { id: 'ship', name: 'Ship calculator' }, { id: 'rate', name: 'Rate something' },
+    { id: 'advice', name: 'Random advice' }, { id: 'mood', name: 'Mood check' },
+    { id: 'goal', name: 'Set daily goal' }, { id: 'mygoal', name: 'Show goal' },
+    { id: 'menu', name: 'Show menu' }, { id: 'ping', name: 'Check latency' }
 ];
 
 const activeBots = new Map();
 
 const DATA = {
-    joke: ["Why do programmers prefer dark mode? Light attracts bugs 🐛","Why did the dev go broke? He used up all his cache 💸","How many programmers to change a bulb? None, it's hardware 💡","A SQL query walks into a bar: 'Can I join you?' 🍻","Recursion: see Recursion 🔁"],
-    quote: ["The best way to predict the future is to invent it. — Alan Kay","Code is like humor. When you have to explain it, it's bad. — Cory House","Simplicity is the soul of efficiency. — Austin Freeman"],
-    fact: ["Octopuses have three hearts 🐙","Honey never spoils 🍯","A day on Venus is longer than a year on Venus 🪐","Bananas are berries, strawberries aren't 🍌"],
+    joke: ["Why do programmers prefer dark mode? Light attracts bugs 🐛","Why did the dev go broke? He used up all his cache 💸","How many programmers to change a bulb? None, it's hardware 💡"],
+    quote: ["The best way to predict the future is to invent it. — Alan Kay","Code is like humor. When you have to explain it, it's bad. — Cory House"],
+    fact: ["Octopuses have three hearts 🐙","Honey never spoils 🍯","A day on Venus is longer than a year on Venus 🪐"],
     truth: ["What's your most embarrassing moment?","Who's your secret crush?","What's the biggest lie you've told?"],
     dare: ["Send the last photo in your gallery.","Type your name with your eyes closed.","Voice note yourself singing."],
-    roast: ["You're the reason they put instructions on shampoo bottles.","Your code is like your face — buggy.","You're the human equivalent of a software update at 3 AM."],
-    compliment: ["You're doing great. Even on the hard days.","Your existence makes the world better.","You're smarter than you think."],
-    vibe: ["🔥 Immaculate vibes. You're unstoppable today.","✨ Chill vibes. Take it easy.","⚡ Chaotic energy. Something big is coming."],
-    sectips: ["*Tip:* Use a password manager.","*Tip:* Enable 2FA on every account.","*Tip:* Never reuse passwords.","*Tip:* Update your apps."],
-    phishing: ["*Phishing Signs:* Urgent language, wrong domain, asking for passwords/OTP.","*Golden Rule:* Never enter passwords into a link someone sent you."],
-    advice: ["Talk less. Listen more.","When stuck, walk away for 10 minutes.","Save 10% of everything you earn.","Learn to say no without explaining yourself."],
-    wouldyourather: ["Fight 1 horse-sized duck OR 100 duck-sized horses?","Always be 10 min late OR 20 min early?","Unlimited money OR unlimited time?","Read minds OR be invisible?"]
+    roast: ["You're the reason they put instructions on shampoo bottles.","Your code is like your face — buggy."],
+    compliment: ["You're doing great.","Your existence makes the world better.","You're smarter than you think."],
+    vibe: ["🔥 Immaculate vibes.","✨ Chill vibes.","⚡ Chaotic energy."],
+    sectips: ["*Tip:* Use a password manager.","*Tip:* Enable 2FA.","*Tip:* Never reuse passwords."],
+    phishing: ["*Signs:* Urgent language, wrong domain, asking for passwords.","*Rule:* Never enter passwords into a link sent to you."],
+    advice: ["Talk less. Listen more.","Save 10% of everything you earn."],
+    wouldyourather: ["Fight 1 horse-sized duck OR 100 duck-sized horses?","Always be 10 min late OR 20 min early?"]
 };
 
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
+// ===== BUILD BOT =====
 function buildBot(user) {
     if (activeBots.has(user.id)) {
         try { activeBots.get(user.id).stop(); } catch (e) {}
@@ -142,13 +118,22 @@ function buildBot(user) {
 
     const bot = new Telegraf(user.bot_token);
     const enabled = JSON.parse(user.enabled_commands || '[]');
+    const customCmds = JSON.parse(user.custom_commands || '{}');
 
     bot.start(ctx => {
-        ctx.reply(`👋 Welcome ${ctx.from.first_name}!\n\nCommands: ${enabled.map(c => '/' + c).join(' ')}\n\nType /menu for details.`);
+        const welcome = user.welcome_message || `👋 Welcome ${ctx.from.first_name}!\n\nCommands: ${enabled.map(c => '/' + c).join(' ')}\n\nType /menu for details.`;
+        ctx.reply(welcome);
     });
 
+    // Track usage helper
+    const track = (cmd) => {
+        db.run(`INSERT INTO command_usage (user_id, command) VALUES (?, ?)`, [user.id, cmd]);
+    };
+
+    // Register enabled commands
     enabled.forEach(cmd => {
         bot.command(cmd, async ctx => {
+            track(cmd);
             const arg = ctx.message.text.replace('/' + cmd, '').trim();
             try {
                 switch (cmd) {
@@ -158,33 +143,22 @@ function buildBot(user) {
                         return ctx.reply('✨ ' + rand(DATA[cmd]));
                     case 'dice': return ctx.reply(`🎲 ${Math.floor(Math.random() * 6) + 1}`);
                     case 'coinflip': return ctx.reply(Math.random() < 0.5 ? 'Heads 🪙' : 'Tails 🪙');
-                    case '8ball': {
-                        const a = ["Yes ✅","No ❌","Maybe 🤔","Definitely 💯","Doubtful 🤨","Ask later 💭"];
-                        return ctx.reply('🎱 ' + rand(a));
-                    }
+                    case '8ball': return ctx.reply('🎱 ' + rand(["Yes ✅","No ❌","Maybe 🤔","Definitely 💯","Doubtful 🤨"]));
                     case 'lucky': {
                         const n = Math.floor(Math.random() * 100) + 1;
-                        const msg = n >= 80 ? '🔥 Very lucky!' : n >= 50 ? '😊 Decent' : '😐 Low luck';
-                        return ctx.reply(`🍀 ${n} — ${msg}`);
+                        return ctx.reply(`🍀 ${n} — ${n >= 80 ? '🔥 Very lucky!' : n >= 50 ? '😊 Decent' : '😐 Low luck'}`);
                     }
-                    case 'yesno': return ctx.reply(rand(['YES ✅','NO ❌','MAYBE 🤔','ASK AGAIN 🔄','DEFINITELY 💯']));
+                    case 'yesno': return ctx.reply(rand(['YES ✅','NO ❌','MAYBE 🤔','ASK AGAIN 🔄']));
                     case 'riddle': {
-                        const r = [{ q: "What has keys but can't open locks?", a: "A piano" },{ q: "What gets wetter the more it dries?", a: "A towel" }];
-                        const pick = rand(r);
-                        await ctx.reply(`🧩 ${pick.q}`);
-                        setTimeout(() => ctx.reply(`💡 ${pick.a}`), 15000);
+                        const r = rand([{ q: "What has keys but can't open locks?", a: "A piano" },{ q: "What gets wetter the more it dries?", a: "A towel" }]);
+                        await ctx.reply(`🧩 ${r.q}`);
+                        setTimeout(() => ctx.reply(`💡 ${r.a}`), 15000);
                         return;
                     }
                     case 'time': return ctx.reply(`🕐 ${new Date().toLocaleString()}`);
                     case 'date': return ctx.reply(`📅 ${new Date().toDateString()}`);
-                    case 'week': {
-                        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-                        return ctx.reply(`📅 Today is ${days[new Date().getDay()]}`);
-                    }
-                    case 'month': {
-                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                        return ctx.reply(`📅 ${months[new Date().getMonth()]}`);
-                    }
+                    case 'week': return ctx.reply(`📅 ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()]}`);
+                    case 'month': return ctx.reply(`📅 ${['January','February','March','April','May','June','July','August','September','October','November','December'][new Date().getMonth()]}`);
                     case 'calc': {
                         if (!arg) return ctx.reply('Usage: /calc 2+2');
                         if (!/^[0-9+\-*/().\s]+$/.test(arg)) return ctx.reply('❌ Only numbers allowed');
@@ -213,21 +187,15 @@ function buildBot(user) {
                     case 'upper': return ctx.reply(arg ? arg.toUpperCase() : 'Usage: /upper hello');
                     case 'lower': return ctx.reply(arg ? arg.toLowerCase() : 'Usage: /lower HELLO');
                     case 'len': return ctx.reply(`Length: ${arg.length}`);
-                    case 'count': {
-                        if (!arg) return ctx.reply('Usage: /count hello world');
-                        return ctx.reply(`📊 Characters: ${arg.length}\n📝 Words: ${arg.split(/\s+/).filter(Boolean).length}`, { parse_mode: 'Markdown' });
-                    }
+                    case 'count': return ctx.reply(`📊 Chars: ${arg.length} | Words: ${arg.split(/\s+/).filter(Boolean).length}`);
                     case 'spell': return ctx.reply(arg ? arg.split('').join(' - ') : 'Usage: /spell hello');
                     case 'alternate': return ctx.reply(arg ? arg.split('').map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join('') : 'Usage: /alternate hello');
-                    case 'titlecase': return ctx.reply(arg ? arg.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : 'Usage: /titlecase hello world');
+                    case 'titlecase': return ctx.reply(arg ? arg.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : 'Usage: /titlecase hello');
                     case 'slugify': return ctx.reply(arg ? `\`${arg.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}\`` : 'Usage: /slugify Hello World', { parse_mode: 'Markdown' });
                     case 'shuffle': {
                         if (!arg) return ctx.reply('Usage: /shuffle hello');
                         const arr = arg.split('');
-                        for (let i = arr.length - 1; i > 0; i--) {
-                            const j = Math.floor(Math.random() * (i + 1));
-                            [arr[i], arr[j]] = [arr[j], arr[i]];
-                        }
+                        for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
                         return ctx.reply(`🔀 ${arr.join('')}`);
                     }
                     case 'rotate': return ctx.reply(arg ? `🔄 ${arg.slice(1)}${arg[0]}` : 'Usage: /rotate hello');
@@ -258,26 +226,13 @@ function buildBot(user) {
                         try { return ctx.reply(`\`${Buffer.from(arg, 'base64').toString()}\``, { parse_mode: 'Markdown' }); }
                         catch { return ctx.reply('❌ Invalid'); }
                     }
-                    case 'binary': {
-                        const n = parseInt(arg);
-                        return isNaN(n) ? ctx.reply('Usage: /binary 42') : ctx.reply(`🔢 \`${n.toString(2)}\``, { parse_mode: 'Markdown' });
-                    }
-                    case 'hex': {
-                        const n = parseInt(arg);
-                        return isNaN(n) ? ctx.reply('Usage: /hex 255') : ctx.reply(`🔢 \`${n.toString(16).toUpperCase()}\``, { parse_mode: 'Markdown' });
-                    }
-                    case 'octal': {
-                        const n = parseInt(arg);
-                        return isNaN(n) ? ctx.reply('Usage: /octal 64') : ctx.reply(`🔢 \`${n.toString(8)}\``, { parse_mode: 'Markdown' });
-                    }
+                    case 'binary': { const n = parseInt(arg); return isNaN(n) ? ctx.reply('Usage: /binary 42') : ctx.reply(`🔢 \`${n.toString(2)}\``, { parse_mode: 'Markdown' }); }
+                    case 'hex': { const n = parseInt(arg); return isNaN(n) ? ctx.reply('Usage: /hex 255') : ctx.reply(`🔢 \`${n.toString(16).toUpperCase()}\``, { parse_mode: 'Markdown' }); }
+                    case 'octal': { const n = parseInt(arg); return isNaN(n) ? ctx.reply('Usage: /octal 64') : ctx.reply(`🔢 \`${n.toString(8)}\``, { parse_mode: 'Markdown' }); }
                     case 'primes': {
                         const n = Math.min(parseInt(arg) || 20, 500);
                         const primes = [];
-                        for (let i = 2; i <= n; i++) {
-                            let p = true;
-                            for (let j = 2; j <= Math.sqrt(i); j++) if (i % j === 0) { p = false; break; }
-                            if (p) primes.push(i);
-                        }
+                        for (let i = 2; i <= n; i++) { let p = true; for (let j = 2; j <= Math.sqrt(i); j++) if (i % j === 0) { p = false; break; } if (p) primes.push(i); }
                         return ctx.reply(`🔢 Primes up to ${n}:\n\`${primes.join(', ')}\``, { parse_mode: 'Markdown' });
                     }
                     case 'fibonacci': {
@@ -304,15 +259,13 @@ function buildBot(user) {
                         const w = parseFloat(p[0]), h = parseFloat(p[1]);
                         if (!w || !h) return ctx.reply('Usage: /bmi 70 1.75');
                         const bmi = (w / (h * h)).toFixed(1);
-                        const cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal ✅' : bmi < 30 ? 'Overweight' : 'Obese';
-                        return ctx.reply(`⚖️ BMI: ${bmi}\n${cat}`);
+                        return ctx.reply(`⚖️ BMI: ${bmi} — ${bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal ✅' : bmi < 30 ? 'Overweight' : 'Obese'}`);
                     }
                     case 'tip': {
                         const p = arg.split(' ');
                         const bill = parseFloat(p[0]), pct = parseFloat(p[1]) || 10;
                         if (!bill) return ctx.reply('Usage: /tip 5000 15');
-                        const tip = (bill * pct / 100).toFixed(2);
-                        return ctx.reply(`💵 Bill: ${bill}\nTip: ${tip}\nTotal: ${(bill + +tip).toFixed(2)}`);
+                        return ctx.reply(`💵 Bill: ${bill}\nTip: ${(bill * pct / 100).toFixed(2)}\nTotal: ${(bill + bill * pct / 100).toFixed(2)}`);
                     }
                     case 'split': {
                         const p = arg.split(' ');
@@ -329,8 +282,7 @@ function buildBot(user) {
                     case 'strength': {
                         if (!arg) return ctx.reply('Usage: /strength MyPass123');
                         const score = [arg.length >= 8, arg.length >= 12, /[a-z]/.test(arg), /[A-Z]/.test(arg), /[0-9]/.test(arg), /[^a-zA-Z0-9]/.test(arg)].filter(Boolean).length;
-                        const s = score >= 5 ? 'Very Strong 🟢' : score >= 4 ? 'Strong 🟡' : score >= 3 ? 'Medium 🟠' : 'Weak 🔴';
-                        return ctx.reply(`🔐 Strength: *${s}*`, { parse_mode: 'Markdown' });
+                        return ctx.reply(`🔐 Strength: ${score >= 5 ? 'Very Strong 🟢' : score >= 4 ? 'Strong 🟡' : score >= 3 ? 'Medium 🟠' : 'Weak 🔴'}`);
                     }
                     case 'scamcheck': {
                         const t = arg.toLowerCase();
@@ -339,7 +291,6 @@ function buildBot(user) {
                         if (/click here/.test(t)) flags.push('Click bait');
                         if (/otp|password|pin|cvv/.test(t)) flags.push('Sensitive info');
                         if (/won|winner|prize/.test(t)) flags.push('Prize bait');
-                        if (/http|www\./.test(t)) flags.push('Contains link');
                         return ctx.reply(`🔍 Red flags: ${flags.length ? flags.join(', ') : '✅ None'}`);
                     }
                     case 'linkcheck': {
@@ -347,7 +298,6 @@ function buildBot(user) {
                         const flags = [];
                         if (/bit\.ly|tinyurl|t\.co/.test(u)) flags.push('Shortener');
                         if (/\.tk|\.ml|\.ga|\.cf/.test(u)) flags.push('Risky TLD');
-                        if (/login|verify/.test(u)) flags.push('Login keyword');
                         if (!/^https:\/\//.test(u)) flags.push('Not HTTPS');
                         return ctx.reply(`🔗 ${flags.length ? '⚠️ ' + flags.join(', ') : '✅ No risks'}`);
                     }
@@ -360,7 +310,7 @@ function buildBot(user) {
                     case 'otp': return ctx.reply('🔐 Never share an OTP. Banks never ask for it over the phone.');
                     case 'linuxcmd': {
                         const c = arg.toLowerCase();
-                        const cmds = { 'ls': 'List files', 'cd': 'Change dir', 'pwd': 'Print working dir', 'chmod': 'Change permissions', 'grep': 'Search text', 'ssh': 'Remote connect', 'tar': 'Archive files', 'curl': 'Transfer data', 'ps': 'List processes', 'df': 'Disk space' };
+                        const cmds = { 'ls': 'List files', 'cd': 'Change dir', 'pwd': 'Print working dir', 'chmod': 'Change permissions', 'grep': 'Search text', 'ssh': 'Remote connect', 'tar': 'Archive files', 'curl': 'Transfer data' };
                         return ctx.reply(cmds[c] ? `🐧 ${c}: ${cmds[c]}` : 'Try: ls, cd, pwd, chmod, grep, ssh, tar, curl');
                     }
                     case 'age': {
@@ -393,19 +343,14 @@ function buildBot(user) {
                     case 'rgb': {
                         const a = arg.split(/[\s,]+/).map(Number);
                         if (a.length < 3 || a.some(isNaN)) return ctx.reply('Usage: /rgb 255 87 51');
-                        const hex = '#' + a.slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase();
-                        return ctx.reply(`🎨 \`${hex}\``, { parse_mode: 'Markdown' });
+                        return ctx.reply(`🎨 \`#${a.slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase()}\``, { parse_mode: 'Markdown' });
                     }
                     case 'ship': {
                         const n = arg.split(/\s+and\s+|\s*\+\s*/i);
                         if (n.length < 2) return ctx.reply('Usage: /ship John and Mary');
-                        const s = Math.floor(Math.random() * 100) + 1;
-                        return ctx.reply(`💘 ${n[0].trim()} × ${n[1].trim()}\n${s}%`);
+                        return ctx.reply(`💘 ${n[0].trim()} × ${n[1].trim()}\n${Math.floor(Math.random() * 100) + 1}%`);
                     }
-                    case 'rate': {
-                        const s = Math.floor(Math.random() * 10) + 1;
-                        return ctx.reply(`⭐ ${arg || 'it'}: ${s}/10`);
-                    }
+                    case 'rate': return ctx.reply(`⭐ ${arg || 'it'}: ${Math.floor(Math.random() * 10) + 1}/10`);
                     case 'mood': return ctx.reply(arg ? `💭 Mood logged: ${arg}` : 'Usage: /mood happy');
                     case 'goal': return arg ? ctx.reply(`🎯 Goal: ${arg}`) : ctx.reply('Usage: /goal finish project');
                     case 'mygoal': return ctx.reply('Use /goal to set a goal.');
@@ -420,35 +365,27 @@ function buildBot(user) {
                         for (let i = 0; i < Math.min(parseInt(m[1]), 20); i++) total += Math.floor(Math.random() * parseInt(m[2])) + 1;
                         return ctx.reply(`🎲 Total: ${total}`);
                     }
-                    case 'ping': {
-                        const t = Date.now();
-                        await ctx.reply('🏓 Pong!');
-                        return ctx.reply(`⚡ ${Date.now() - t}ms`);
-                    }
-                    case 'menu': {
-                        return ctx.reply(`🤖 *Commands available:*\n\n${enabled.map(c => '/' + c).join('\n')}`, { parse_mode: 'Markdown' });
-                    }
-                    default:
-                        return ctx.reply('✅ Command works');
+                    case 'ping': { const t = Date.now(); await ctx.reply('🏓 Pong!'); return ctx.reply(`⚡ ${Date.now() - t}ms`); }
+                    case 'menu': return ctx.reply(`🤖 *Commands:*\n\n${enabled.map(c => '/' + c).join('\n')}`, { parse_mode: 'Markdown' });
+                    default: return ctx.reply('✅ Command works');
                 }
-            } catch (e) {
-                ctx.reply('❌ Error: ' + e.message);
-            }
+            } catch (e) { ctx.reply('❌ Error: ' + e.message); }
+        });
+    });
+
+    // Register custom user commands
+    Object.keys(customCmds).forEach(customId => {
+        bot.command(customId, ctx => {
+            track('custom_' + customId);
+            ctx.reply(customCmds[customId]);
         });
     });
 
     bot.on('text', ctx => {
-        if (ctx.message.text.startsWith('/')) {
-            ctx.reply('❌ Unknown command. Type /menu');
-        }
+        if (ctx.message.text.startsWith('/')) ctx.reply('❌ Unknown command. Type /menu');
     });
 
-    bot.launch().then(() => {
-        console.log(`✅ Bot launched for user ${user.email}`);
-    }).catch(e => {
-        console.error(`❌ Bot failed for ${user.email}:`, e.message);
-    });
-
+    bot.launch().then(() => console.log(`✅ Bot for ${user.email}`)).catch(e => console.error(`❌ ${user.email}:`, e.message));
     activeBots.set(user.id, bot);
 }
 
@@ -463,9 +400,7 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 
 app.post('/api/signup', async (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password || password.length < 6) {
-        return res.status(400).json({ error: 'Email and password (min 6 chars) required' });
-    }
+    if (!email || !password || password.length < 6) return res.status(400).json({ error: 'Email and password (min 6 chars) required' });
     try {
         const hash = await bcrypt.hash(password, 10);
         db.run(`INSERT INTO users (email, password) VALUES (?, ?)`, [email, hash], function(err) {
@@ -473,9 +408,7 @@ app.post('/api/signup', async (req, res) => {
             req.session.userId = this.lastID;
             res.json({ success: true });
         });
-    } catch (e) {
-        res.status(500).json({ error: 'Server error' });
-    }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/api/login', (req, res) => {
@@ -485,40 +418,37 @@ app.post('/api/login', (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(400).json({ error: 'Invalid email or password' });
         req.session.userId = user.id;
-        res.json({ success: true });
+        req.session.isAdmin = user.email === ADMIN_EMAIL;
+        res.json({ success: true, isAdmin: req.session.isAdmin });
     });
 });
 
-app.post('/api/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
-});
+app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 
 app.get('/api/me', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    db.get(`SELECT id, email, bot_username, enabled_commands FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
+    db.get(`SELECT id, email, bot_username, enabled_commands, welcome_message, custom_commands FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
         if (err || !user) return res.status(404).json({ error: 'User not found' });
+        user.isAdmin = user.email === ADMIN_EMAIL;
         res.json(user);
     });
 });
 
 app.get('/api/commands', (req, res) => res.json(AVAILABLE_COMMANDS));
 
+// Save bot settings
 app.post('/api/bot/settings', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
-    const { bot_token, enabled_commands } = req.body;
+    const { bot_token, enabled_commands, welcome_message, custom_commands } = req.body;
 
-    if (!bot_token || !bot_token.match(/^\d+:[A-Za-z0-9_-]+$/)) {
-        return res.status(400).json({ error: 'Invalid bot token format' });
-    }
+    if (!bot_token || !bot_token.match(/^\d+:[A-Za-z0-9_-]+$/)) return res.status(400).json({ error: 'Invalid bot token format' });
 
     axios.get(`https://api.telegram.org/bot${bot_token}/getMe`)
         .then(response => {
             if (!response.data.ok) return res.status(400).json({ error: 'Invalid bot token' });
             const username = response.data.result.username;
-
-            db.run(`UPDATE users SET bot_token = ?, bot_username = ?, enabled_commands = ? WHERE id = ?`,
-                [bot_token, username, JSON.stringify(enabled_commands), req.session.userId],
+            db.run(`UPDATE users SET bot_token = ?, bot_username = ?, enabled_commands = ?, welcome_message = ?, custom_commands = ? WHERE id = ?`,
+                [bot_token, username, JSON.stringify(enabled_commands), welcome_message || null, JSON.stringify(custom_commands || {}), req.session.userId],
                 function(err) {
                     if (err) return res.status(500).json({ error: 'Database error' });
                     db.get(`SELECT * FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
@@ -530,6 +460,57 @@ app.post('/api/bot/settings', (req, res) => {
         .catch(() => res.status(400).json({ error: 'Could not verify bot token' }));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🌐 Server running on port ${PORT}`);
+// Analytics — user's own
+app.get('/api/analytics', (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
+    db.all(`SELECT command, COUNT(*) as count FROM command_usage WHERE user_id = ? GROUP BY command ORDER BY count DESC LIMIT 10`,
+        [req.session.userId], (err, rows) => {
+            if (err) return res.status(500).json({ error: 'DB error' });
+            db.get(`SELECT COUNT(*) as total FROM command_usage WHERE user_id = ?`, [req.session.userId], (err2, totalRow) => {
+                res.json({ top: rows, total: totalRow?.total || 0 });
+            });
+        });
 });
+
+// ===== ADMIN ROUTES =====
+function requireAdmin(req, res, next) {
+    if (!req.session.userId || !req.session.isAdmin) return res.status(403).json({ error: 'Admin only' });
+    next();
+}
+
+app.get('/api/admin/users', requireAdmin, (req, res) => {
+    db.all(`SELECT id, email, bot_username, created_at, (SELECT COUNT(*) FROM command_usage WHERE user_id = users.id) as usage_count FROM users ORDER BY created_at DESC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'DB error' });
+        res.json(rows);
+    });
+});
+
+app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
+    const id = parseInt(req.params.id);
+    if (activeBots.has(id)) { try { activeBots.get(id).stop(); } catch (e) {} activeBots.delete(id); }
+    db.run(`DELETE FROM users WHERE id = ?`, [id], (err) => {
+        if (err) return res.status(500).json({ error: 'Delete failed' });
+        res.json({ success: true });
+    });
+});
+
+app.post('/api/admin/restart/:id', requireAdmin, (req, res) => {
+    const id = parseInt(req.params.id);
+    db.get(`SELECT * FROM users WHERE id = ?`, [id], (err, user) => {
+        if (err || !user) return res.status(404).json({ error: 'User not found' });
+        if (user.bot_token) buildBot(user);
+        res.json({ success: true });
+    });
+});
+
+app.get('/api/admin/stats', requireAdmin, (req, res) => {
+    db.get(`SELECT COUNT(*) as total_users FROM users`, [], (e1, u) => {
+        db.get(`SELECT COUNT(*) as total_bots FROM users WHERE bot_token IS NOT NULL`, [], (e2, b) => {
+            db.get(`SELECT COUNT(*) as total_uses FROM command_usage`, [], (e3, c) => {
+                res.json({ users: u?.total_users || 0, bots: b?.total_bots || 0, commands_used: c?.total_uses || 0 });
+            });
+        });
+    });
+});
+
+app.listen(PORT, '0.0.0.0', () => console.log(`🌐 Server running on port ${PORT}`));
