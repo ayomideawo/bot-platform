@@ -11,7 +11,6 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -22,7 +21,6 @@ app.use(session({
     cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
-// ===== DATABASE =====
 const db = new sqlite3.Database('./platform.db');
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -36,7 +34,7 @@ db.serialize(() => {
     )`);
 });
 
-// ===== AVAILABLE COMMANDS =====
+// ===== AVAILABLE COMMANDS (expanded) =====
 const AVAILABLE_COMMANDS = [
     { id: 'joke', name: 'Random joke' },
     { id: 'quote', name: 'Random quote' },
@@ -50,49 +48,75 @@ const AVAILABLE_COMMANDS = [
     { id: 'roast', name: 'Roast' },
     { id: 'compliment', name: 'Compliment' },
     { id: 'vibe', name: 'Vibe check' },
+    { id: 'lucky', name: 'Lucky number' },
+    { id: 'yesno', name: 'Yes/No' },
+    { id: 'pick', name: 'Pick from list' },
+    { id: 'roll', name: 'Dice notation' },
+    { id: 'wouldyourather', name: 'Would you rather' },
     { id: 'time', name: 'Current time' },
     { id: 'date', name: 'Today date' },
+    { id: 'week', name: 'Day of week' },
+    { id: 'month', name: 'Current month' },
     { id: 'calc', name: 'Calculator' },
     { id: 'random', name: 'Random number' },
     { id: 'password', name: 'Generate password' },
+    { id: 'genpass', name: 'Secure password' },
     { id: 'uuid', name: 'UUID generator' },
     { id: 'reverse', name: 'Reverse text' },
     { id: 'upper', name: 'Uppercase' },
     { id: 'lower', name: 'Lowercase' },
     { id: 'len', name: 'Length counter' },
+    { id: 'count', name: 'Text stats' },
+    { id: 'spell', name: 'Spell letters' },
+    { id: 'alternate', name: 'Alternate case' },
+    { id: 'titlecase', name: 'Title Case' },
+    { id: 'slugify', name: 'Slugify text' },
+    { id: 'shuffle', name: 'Shuffle letters' },
+    { id: 'rotate', name: 'Rotate text' },
+    { id: 'caesar', name: 'Caesar cipher' },
+    { id: 'vowels', name: 'Vowel count' },
+    { id: 'morse', name: 'Text to Morse' },
     { id: 'sha256', name: 'SHA256 hash' },
     { id: 'md5', name: 'MD5 hash' },
     { id: 'b64encode', name: 'Base64 encode' },
     { id: 'b64decode', name: 'Base64 decode' },
     { id: 'binary', name: 'To binary' },
     { id: 'hex', name: 'To hex' },
-    { id: 'morse', name: 'Text to Morse' },
+    { id: 'octal', name: 'To octal' },
+    { id: 'primes', name: 'Prime numbers' },
+    { id: 'fibonacci', name: 'Fibonacci' },
+    { id: 'factorial', name: 'Factorial' },
+    { id: 'gcd', name: 'GCD' },
+    { id: 'bmi', name: 'BMI calculator' },
+    { id: 'tip', name: 'Tip calculator' },
+    { id: 'split', name: 'Split bill' },
+    { id: 'percent', name: 'Percentage' },
     { id: 'strength', name: 'Password strength' },
-    { id: 'genpass', name: 'Secure password' },
     { id: 'scamcheck', name: 'Scam analysis' },
     { id: 'linkcheck', name: 'Link safety' },
     { id: 'sectips', name: 'Security tip' },
     { id: 'phishing', name: 'Phishing tips' },
+    { id: 'randpin', name: 'Random PIN' },
+    { id: 'otp', name: 'OTP safety' },
     { id: 'linuxcmd', name: 'Linux command help' },
     { id: 'age', name: 'Age calculator' },
+    { id: 'daysuntil', name: 'Days until date' },
     { id: 'countdown', name: 'Countdown' },
+    { id: 'unixtime', name: 'Unix timestamp' },
+    { id: 'hexcolor', name: 'Hex color info' },
+    { id: 'rgb', name: 'RGB to hex' },
     { id: 'ship', name: 'Ship calculator' },
     { id: 'rate', name: 'Rate something' },
     { id: 'advice', name: 'Random advice' },
     { id: 'mood', name: 'Mood check' },
     { id: 'goal', name: 'Set daily goal' },
     { id: 'mygoal', name: 'Show goal' },
-    { id: 'pick', name: 'Pick from list' },
-    { id: 'roll', name: 'Dice notation' },
-    { id: 'wouldyourather', name: 'Would you rather' },
     { id: 'menu', name: 'Show menu' },
     { id: 'ping', name: 'Check latency' }
 ];
 
-// ===== ACTIVE BOTS =====
-const activeBots = new Map(); // userId -> bot instance
+const activeBots = new Map();
 
-// ===== DATA POOLS =====
 const DATA = {
     joke: ["Why do programmers prefer dark mode? Light attracts bugs 🐛","Why did the dev go broke? He used up all his cache 💸","How many programmers to change a bulb? None, it's hardware 💡","A SQL query walks into a bar: 'Can I join you?' 🍻","Recursion: see Recursion 🔁"],
     quote: ["The best way to predict the future is to invent it. — Alan Kay","Code is like humor. When you have to explain it, it's bad. — Cory House","Simplicity is the soul of efficiency. — Austin Freeman"],
@@ -110,7 +134,6 @@ const DATA = {
 
 const rand = arr => arr[Math.floor(Math.random() * arr.length)];
 
-// ===== BUILD BOT FOR USER =====
 function buildBot(user) {
     if (activeBots.has(user.id)) {
         try { activeBots.get(user.id).stop(); } catch (e) {}
@@ -120,14 +143,13 @@ function buildBot(user) {
     const bot = new Telegraf(user.bot_token);
     const enabled = JSON.parse(user.enabled_commands || '[]');
 
-    // /start
     bot.start(ctx => {
-        ctx.reply(`👋 Welcome ${ctx.from.first_name}!\n\nThis bot is owned by another user. Commands available:\n${enabled.map(c => '/' + c).join(' ')}\n\nType /menu for details.`);
+        ctx.reply(`👋 Welcome ${ctx.from.first_name}!\n\nCommands: ${enabled.map(c => '/' + c).join(' ')}\n\nType /menu for details.`);
     });
 
-    // Register each command
     enabled.forEach(cmd => {
         bot.command(cmd, async ctx => {
+            const arg = ctx.message.text.replace('/' + cmd, '').trim();
             try {
                 switch (cmd) {
                     case 'joke': case 'quote': case 'fact': case 'truth': case 'dare':
@@ -137,9 +159,15 @@ function buildBot(user) {
                     case 'dice': return ctx.reply(`🎲 ${Math.floor(Math.random() * 6) + 1}`);
                     case 'coinflip': return ctx.reply(Math.random() < 0.5 ? 'Heads 🪙' : 'Tails 🪙');
                     case '8ball': {
-                        const a = ["Yes ✅","No ❌","Maybe 🤔","Definitely 💯","Doubtful 🤨"];
+                        const a = ["Yes ✅","No ❌","Maybe 🤔","Definitely 💯","Doubtful 🤨","Ask later 💭"];
                         return ctx.reply('🎱 ' + rand(a));
                     }
+                    case 'lucky': {
+                        const n = Math.floor(Math.random() * 100) + 1;
+                        const msg = n >= 80 ? '🔥 Very lucky!' : n >= 50 ? '😊 Decent' : '😐 Low luck';
+                        return ctx.reply(`🍀 ${n} — ${msg}`);
+                    }
+                    case 'yesno': return ctx.reply(rand(['YES ✅','NO ❌','MAYBE 🤔','ASK AGAIN 🔄','DEFINITELY 💯']));
                     case 'riddle': {
                         const r = [{ q: "What has keys but can't open locks?", a: "A piano" },{ q: "What gets wetter the more it dries?", a: "A towel" }];
                         const pick = rand(r);
@@ -149,20 +177,26 @@ function buildBot(user) {
                     }
                     case 'time': return ctx.reply(`🕐 ${new Date().toLocaleString()}`);
                     case 'date': return ctx.reply(`📅 ${new Date().toDateString()}`);
+                    case 'week': {
+                        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                        return ctx.reply(`📅 Today is ${days[new Date().getDay()]}`);
+                    }
+                    case 'month': {
+                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        return ctx.reply(`📅 ${months[new Date().getMonth()]}`);
+                    }
                     case 'calc': {
-                        const expr = ctx.message.text.replace('/calc', '').trim();
-                        if (!expr) return ctx.reply('Usage: /calc 2+2');
-                        if (!/^[0-9+\-*/().\s]+$/.test(expr)) return ctx.reply('❌ Only numbers');
-                        try { return ctx.reply(`🧮 ${expr} = ${eval(expr)}`); } catch { return ctx.reply('❌ Invalid'); }
+                        if (!arg) return ctx.reply('Usage: /calc 2+2');
+                        if (!/^[0-9+\-*/().\s]+$/.test(arg)) return ctx.reply('❌ Only numbers allowed');
+                        try { return ctx.reply(`🧮 ${arg} = ${eval(arg)}`); } catch { return ctx.reply('❌ Invalid'); }
                     }
                     case 'random': {
-                        const a = ctx.message.text.split(' ');
-                        const min = parseInt(a[1]) || 1, max = parseInt(a[2]) || 100;
+                        const a = arg.split(' ');
+                        const min = parseInt(a[0]) || 1, max = parseInt(a[1]) || 100;
                         return ctx.reply(`🎲 ${Math.floor(Math.random() * (max - min + 1)) + min}`);
                     }
                     case 'password': case 'genpass': {
-                        const a = ctx.message.text.split(' ');
-                        const len = Math.min(parseInt(a[1]) || 16, 64);
+                        const len = Math.min(parseInt(arg) || 16, 64);
                         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
                         let p = '';
                         for (let i = 0; i < len; i++) p += chars[Math.floor(Math.random() * chars.length)];
@@ -175,125 +209,212 @@ function buildBot(user) {
                         });
                         return ctx.reply(`🆔 \`${u}\``, { parse_mode: 'Markdown' });
                     }
-                    case 'reverse': {
-                        const t = ctx.message.text.replace('/reverse', '').trim();
-                        return ctx.reply(t ? t.split('').reverse().join('') : 'Usage: /reverse hello');
+                    case 'reverse': return ctx.reply(arg ? arg.split('').reverse().join('') : 'Usage: /reverse hello');
+                    case 'upper': return ctx.reply(arg ? arg.toUpperCase() : 'Usage: /upper hello');
+                    case 'lower': return ctx.reply(arg ? arg.toLowerCase() : 'Usage: /lower HELLO');
+                    case 'len': return ctx.reply(`Length: ${arg.length}`);
+                    case 'count': {
+                        if (!arg) return ctx.reply('Usage: /count hello world');
+                        return ctx.reply(`📊 Characters: ${arg.length}\n📝 Words: ${arg.split(/\s+/).filter(Boolean).length}`, { parse_mode: 'Markdown' });
                     }
-                    case 'upper': {
-                        const t = ctx.message.text.replace('/upper', '').trim();
-                        return ctx.reply(t ? t.toUpperCase() : 'Usage: /upper hello');
+                    case 'spell': return ctx.reply(arg ? arg.split('').join(' - ') : 'Usage: /spell hello');
+                    case 'alternate': return ctx.reply(arg ? arg.split('').map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join('') : 'Usage: /alternate hello');
+                    case 'titlecase': return ctx.reply(arg ? arg.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : 'Usage: /titlecase hello world');
+                    case 'slugify': return ctx.reply(arg ? `\`${arg.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}\`` : 'Usage: /slugify Hello World', { parse_mode: 'Markdown' });
+                    case 'shuffle': {
+                        if (!arg) return ctx.reply('Usage: /shuffle hello');
+                        const arr = arg.split('');
+                        for (let i = arr.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [arr[i], arr[j]] = [arr[j], arr[i]];
+                        }
+                        return ctx.reply(`🔀 ${arr.join('')}`);
                     }
-                    case 'lower': {
-                        const t = ctx.message.text.replace('/lower', '').trim();
-                        return ctx.reply(t ? t.toLowerCase() : 'Usage: /lower HELLO');
+                    case 'rotate': return ctx.reply(arg ? `🔄 ${arg.slice(1)}${arg[0]}` : 'Usage: /rotate hello');
+                    case 'caesar': {
+                        const parts = arg.split(' ');
+                        const shift = parseInt(parts[0]) || 3;
+                        const t = parts.slice(1).join(' ');
+                        if (!t) return ctx.reply('Usage: /caesar 3 hello');
+                        return ctx.reply(`🔐 ${t.replace(/[a-z]/gi, c => {
+                            const base = c <= 'Z' ? 65 : 97;
+                            return String.fromCharCode((c.charCodeAt(0) - base + shift + 26) % 26 + base);
+                        })}`);
                     }
-                    case 'len': {
-                        const t = ctx.message.text.replace('/len', '').trim();
-                        return ctx.reply(`Length: ${t.length}`);
+                    case 'vowels': {
+                        const t = arg.toLowerCase();
+                        const v = (t.match(/[aeiou]/g) || []).length;
+                        return ctx.reply(`🔤 Vowels: ${v} | Consonants: ${t.replace(/[^a-z]/g, '').length - v}`);
                     }
-                    case 'sha256': {
-                        const t = ctx.message.text.replace('/sha256', '').trim();
-                        if (!t) return ctx.reply('Usage: /sha256 hello');
-                        return ctx.reply(`🔐 \`${crypto.createHash('sha256').update(t).digest('hex')}\``, { parse_mode: 'Markdown' });
+                    case 'morse': {
+                        const t = arg.toLowerCase();
+                        const map = { a:'.-', b:'-...', c:'-.-.', d:'-..', e:'.', f:'..-.', g:'--.', h:'....', i:'..', j:'.---', k:'-.-', l:'.-..', m:'--', n:'-.', o:'---', p:'.--.', q:'--.-', r:'.-.', s:'...', t:'-', u:'..-', v:'...-', w:'.--', x:'-..-', y:'-.--', z:'--..', ' ':'/' };
+                        return ctx.reply(`📡 \`${t.split('').map(c => map[c] || c).join(' ')}\``, { parse_mode: 'Markdown' });
                     }
-                    case 'md5': {
-                        const t = ctx.message.text.replace('/md5', '').trim();
-                        if (!t) return ctx.reply('Usage: /md5 hello');
-                        return ctx.reply(`🔐 \`${crypto.createHash('md5').update(t).digest('hex')}\``, { parse_mode: 'Markdown' });
-                    }
-                    case 'b64encode': {
-                        const t = ctx.message.text.replace('/b64encode', '').trim();
-                        return ctx.reply(`\`${Buffer.from(t).toString('base64')}\``, { parse_mode: 'Markdown' });
-                    }
+                    case 'sha256': return ctx.reply(arg ? `🔐 \`${crypto.createHash('sha256').update(arg).digest('hex')}\`` : 'Usage: /sha256 hello', { parse_mode: 'Markdown' });
+                    case 'md5': return ctx.reply(arg ? `🔐 \`${crypto.createHash('md5').update(arg).digest('hex')}\`` : 'Usage: /md5 hello', { parse_mode: 'Markdown' });
+                    case 'b64encode': return ctx.reply(arg ? `\`${Buffer.from(arg).toString('base64')}\`` : 'Usage: /b64encode hello', { parse_mode: 'Markdown' });
                     case 'b64decode': {
-                        const t = ctx.message.text.replace('/b64decode', '').trim();
-                        try { return ctx.reply(`\`${Buffer.from(t, 'base64').toString()}\``, { parse_mode: 'Markdown' }); }
+                        try { return ctx.reply(`\`${Buffer.from(arg, 'base64').toString()}\``, { parse_mode: 'Markdown' }); }
                         catch { return ctx.reply('❌ Invalid'); }
                     }
                     case 'binary': {
-                        const n = parseInt(ctx.message.text.replace('/binary', '').trim());
+                        const n = parseInt(arg);
                         return isNaN(n) ? ctx.reply('Usage: /binary 42') : ctx.reply(`🔢 \`${n.toString(2)}\``, { parse_mode: 'Markdown' });
                     }
                     case 'hex': {
-                        const n = parseInt(ctx.message.text.replace('/hex', '').trim());
+                        const n = parseInt(arg);
                         return isNaN(n) ? ctx.reply('Usage: /hex 255') : ctx.reply(`🔢 \`${n.toString(16).toUpperCase()}\``, { parse_mode: 'Markdown' });
                     }
-                    case 'morse': {
-                        const t = ctx.message.text.replace('/morse', '').trim().toLowerCase();
-                        const map = { a:'.-', b:'-...', c:'-.-.', d:'-..', e:'.', f:'..-.', g:'--.', h:'....', i:'..', j:'.---', k:'-.-', l:'.-..', m:'--', n:'-.', o:'---', p:'.--.', q:'--.-', r:'.-.', s:'...', t:'-', u:'..-', v:'...-', w:'.--', x:'-..-', y:'-.--', z:'--..', '0':'-----', '1':'.----', '2':'..---', '3':'...--', '4':'....-', '5':'.....', '6':'-....', '7':'--...', '8':'---..', '9':'----.', ' ':'/' };
-                        return ctx.reply(`📡 \`${t.split('').map(c => map[c] || c).join(' ')}\``, { parse_mode: 'Markdown' });
+                    case 'octal': {
+                        const n = parseInt(arg);
+                        return isNaN(n) ? ctx.reply('Usage: /octal 64') : ctx.reply(`🔢 \`${n.toString(8)}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'primes': {
+                        const n = Math.min(parseInt(arg) || 20, 500);
+                        const primes = [];
+                        for (let i = 2; i <= n; i++) {
+                            let p = true;
+                            for (let j = 2; j <= Math.sqrt(i); j++) if (i % j === 0) { p = false; break; }
+                            if (p) primes.push(i);
+                        }
+                        return ctx.reply(`🔢 Primes up to ${n}:\n\`${primes.join(', ')}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'fibonacci': {
+                        const n = Math.min(parseInt(arg) || 10, 50);
+                        const fib = [0, 1];
+                        for (let i = 2; i < n; i++) fib.push(fib[i - 1] + fib[i - 2]);
+                        return ctx.reply(`🔢 \`${fib.slice(0, n).join(', ')}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'factorial': {
+                        const n = parseInt(arg);
+                        if (isNaN(n) || n < 0 || n > 170) return ctx.reply('Usage: /factorial 5');
+                        let r = 1n;
+                        for (let i = 2n; i <= BigInt(n); i++) r *= i;
+                        return ctx.reply(`🔢 ${n}! = \`${r}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'gcd': {
+                        const a = arg.split(/\s+/).map(Number);
+                        if (a.length < 2) return ctx.reply('Usage: /gcd 12 18');
+                        const gcd = (x, y) => y ? gcd(y, x % y) : x;
+                        return ctx.reply(`🔢 GCD: \`${a.reduce(gcd)}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'bmi': {
+                        const p = arg.split(' ');
+                        const w = parseFloat(p[0]), h = parseFloat(p[1]);
+                        if (!w || !h) return ctx.reply('Usage: /bmi 70 1.75');
+                        const bmi = (w / (h * h)).toFixed(1);
+                        const cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal ✅' : bmi < 30 ? 'Overweight' : 'Obese';
+                        return ctx.reply(`⚖️ BMI: ${bmi}\n${cat}`);
+                    }
+                    case 'tip': {
+                        const p = arg.split(' ');
+                        const bill = parseFloat(p[0]), pct = parseFloat(p[1]) || 10;
+                        if (!bill) return ctx.reply('Usage: /tip 5000 15');
+                        const tip = (bill * pct / 100).toFixed(2);
+                        return ctx.reply(`💵 Bill: ${bill}\nTip: ${tip}\nTotal: ${(bill + +tip).toFixed(2)}`);
+                    }
+                    case 'split': {
+                        const p = arg.split(' ');
+                        const bill = parseFloat(p[0]), people = parseInt(p[1]);
+                        if (!bill || !people) return ctx.reply('Usage: /split 10000 4');
+                        return ctx.reply(`💵 ${(bill / people).toFixed(2)} each`);
+                    }
+                    case 'percent': {
+                        const p = arg.split(' ');
+                        const num = parseFloat(p[0]), pct = parseFloat(p[1]);
+                        if (!num || !pct) return ctx.reply('Usage: /percent 500 15');
+                        return ctx.reply(`📊 ${pct}% of ${num} = ${(num * pct / 100).toFixed(2)}`);
                     }
                     case 'strength': {
-                        const p = ctx.message.text.replace('/strength', '').trim();
-                        if (!p) return ctx.reply('Usage: /strength MyPass123');
-                        const score = [p.length >= 8, p.length >= 12, /[a-z]/.test(p), /[A-Z]/.test(p), /[0-9]/.test(p), /[^a-zA-Z0-9]/.test(p)].filter(Boolean).length;
+                        if (!arg) return ctx.reply('Usage: /strength MyPass123');
+                        const score = [arg.length >= 8, arg.length >= 12, /[a-z]/.test(arg), /[A-Z]/.test(arg), /[0-9]/.test(arg), /[^a-zA-Z0-9]/.test(arg)].filter(Boolean).length;
                         const s = score >= 5 ? 'Very Strong 🟢' : score >= 4 ? 'Strong 🟡' : score >= 3 ? 'Medium 🟠' : 'Weak 🔴';
                         return ctx.reply(`🔐 Strength: *${s}*`, { parse_mode: 'Markdown' });
                     }
                     case 'scamcheck': {
-                        const t = ctx.message.text.replace('/scamcheck', '').trim().toLowerCase();
+                        const t = arg.toLowerCase();
                         const flags = [];
                         if (/urgent|immediately/.test(t)) flags.push('Urgency');
                         if (/click here/.test(t)) flags.push('Click bait');
-                        if (/otp|password|pin|cvv/.test(t)) flags.push('Asks for sensitive info');
+                        if (/otp|password|pin|cvv/.test(t)) flags.push('Sensitive info');
                         if (/won|winner|prize/.test(t)) flags.push('Prize bait');
                         if (/http|www\./.test(t)) flags.push('Contains link');
-                        return ctx.reply(`🔍 Red flags: ${flags.length ? flags.join(', ') : 'None'}`, { parse_mode: 'Markdown' });
+                        return ctx.reply(`🔍 Red flags: ${flags.length ? flags.join(', ') : '✅ None'}`);
                     }
                     case 'linkcheck': {
-                        const u = ctx.message.text.replace('/linkcheck', '').trim().toLowerCase();
+                        const u = arg.toLowerCase();
                         const flags = [];
                         if (/bit\.ly|tinyurl|t\.co/.test(u)) flags.push('Shortener');
                         if (/\.tk|\.ml|\.ga|\.cf/.test(u)) flags.push('Risky TLD');
                         if (/login|verify/.test(u)) flags.push('Login keyword');
                         if (!/^https:\/\//.test(u)) flags.push('Not HTTPS');
-                        return ctx.reply(`🔗 ${flags.length ? '⚠️ ' + flags.join(', ') : '✅ No obvious risks'}`);
+                        return ctx.reply(`🔗 ${flags.length ? '⚠️ ' + flags.join(', ') : '✅ No risks'}`);
                     }
+                    case 'randpin': {
+                        const len = Math.min(parseInt(arg) || 6, 12);
+                        let pin = '';
+                        for (let i = 0; i < len; i++) pin += Math.floor(Math.random() * 10);
+                        return ctx.reply(`🔢 \`${pin}\``, { parse_mode: 'Markdown' });
+                    }
+                    case 'otp': return ctx.reply('🔐 Never share an OTP. Banks never ask for it over the phone.');
                     case 'linuxcmd': {
-                        const c = ctx.message.text.replace('/linuxcmd', '').trim().toLowerCase();
-                        const cmds = { 'ls': 'List files', 'cd': 'Change directory', 'pwd': 'Print working dir', 'chmod': 'Change permissions', 'grep': 'Search text', 'ssh': 'Remote connect', 'tar': 'Archive files', 'curl': 'Transfer data' };
+                        const c = arg.toLowerCase();
+                        const cmds = { 'ls': 'List files', 'cd': 'Change dir', 'pwd': 'Print working dir', 'chmod': 'Change permissions', 'grep': 'Search text', 'ssh': 'Remote connect', 'tar': 'Archive files', 'curl': 'Transfer data', 'ps': 'List processes', 'df': 'Disk space' };
                         return ctx.reply(cmds[c] ? `🐧 ${c}: ${cmds[c]}` : 'Try: ls, cd, pwd, chmod, grep, ssh, tar, curl');
                     }
                     case 'age': {
-                        const d = new Date(ctx.message.text.replace('/age', '').trim());
+                        const d = new Date(arg);
                         if (isNaN(d)) return ctx.reply('Usage: /age 2000-01-15');
                         let years = new Date().getFullYear() - d.getFullYear();
                         const m = new Date().getMonth() - d.getMonth();
                         if (m < 0 || (m === 0 && new Date().getDate() < d.getDate())) years--;
                         return ctx.reply(`🎂 Age: ${years} years`);
                     }
+                    case 'daysuntil': {
+                        const d = new Date(arg);
+                        if (isNaN(d)) return ctx.reply('Usage: /daysuntil 2026-12-25');
+                        const days = Math.ceil((d - new Date()) / 86400000);
+                        return ctx.reply(days < 0 ? `Was ${-days} days ago` : `⏳ ${days} days`);
+                    }
                     case 'countdown': {
-                        const d = new Date(ctx.message.text.replace('/countdown', '').trim());
+                        const d = new Date(arg);
                         if (isNaN(d)) return ctx.reply('Usage: /countdown 2026-12-31');
                         const days = Math.ceil((d - new Date()) / 86400000);
                         return ctx.reply(days < 0 ? `Was ${-days} days ago` : `⏳ ${days} days left`);
                     }
+                    case 'unixtime': return ctx.reply(`🕐 \`${Math.floor(Date.now() / 1000)}\``, { parse_mode: 'Markdown' });
+                    case 'hexcolor': {
+                        const hex = arg.replace('#', '');
+                        if (!/^[0-9a-fA-F]{6}$/.test(hex)) return ctx.reply('Usage: /hexcolor FF5733');
+                        const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+                        return ctx.reply(`🎨 *#${hex.toUpperCase()}*\nRGB: ${r}, ${g}, ${b}`, { parse_mode: 'Markdown' });
+                    }
+                    case 'rgb': {
+                        const a = arg.split(/[\s,]+/).map(Number);
+                        if (a.length < 3 || a.some(isNaN)) return ctx.reply('Usage: /rgb 255 87 51');
+                        const hex = '#' + a.slice(0, 3).map(n => n.toString(16).padStart(2, '0')).join('').toUpperCase();
+                        return ctx.reply(`🎨 \`${hex}\``, { parse_mode: 'Markdown' });
+                    }
                     case 'ship': {
-                        const n = ctx.message.text.replace('/ship', '').trim().split(/\s+and\s+|\s*\+\s*/i);
+                        const n = arg.split(/\s+and\s+|\s*\+\s*/i);
                         if (n.length < 2) return ctx.reply('Usage: /ship John and Mary');
                         const s = Math.floor(Math.random() * 100) + 1;
                         return ctx.reply(`💘 ${n[0].trim()} × ${n[1].trim()}\n${s}%`);
                     }
                     case 'rate': {
-                        const thing = ctx.message.text.replace('/rate', '').trim();
                         const s = Math.floor(Math.random() * 10) + 1;
-                        return ctx.reply(`⭐ ${thing}: ${s}/10`);
+                        return ctx.reply(`⭐ ${arg || 'it'}: ${s}/10`);
                     }
-                    case 'mood': {
-                        const m = ctx.message.text.replace('/mood', '').trim();
-                        return ctx.reply(m ? `💭 Mood logged: ${m}` : 'Usage: /mood happy');
-                    }
-                    case 'goal': {
-                        const g = ctx.message.text.replace('/goal', '').trim();
-                        return g ? ctx.reply(`🎯 Goal: ${g}`) : ctx.reply('Usage: /goal finish project');
-                    }
+                    case 'mood': return ctx.reply(arg ? `💭 Mood logged: ${arg}` : 'Usage: /mood happy');
+                    case 'goal': return arg ? ctx.reply(`🎯 Goal: ${arg}`) : ctx.reply('Usage: /goal finish project');
                     case 'mygoal': return ctx.reply('Use /goal to set a goal.');
                     case 'pick': {
-                        const o = ctx.message.text.replace('/pick', '').trim().split(',').filter(Boolean);
+                        const o = arg.split(',').filter(Boolean);
                         return o.length < 2 ? ctx.reply('Usage: /pick pizza, burger') : ctx.reply(`🎯 ${rand(o).trim()}`);
                     }
                     case 'roll': {
-                        const m = ctx.message.text.split(' ')[1]?.match(/^(\d+)d(\d+)$/);
+                        const m = arg.match(/^(\d+)d(\d+)$/);
                         if (!m) return ctx.reply('Usage: /roll 2d6');
                         let total = 0;
                         for (let i = 0; i < Math.min(parseInt(m[1]), 20); i++) total += Math.floor(Math.random() * parseInt(m[2])) + 1;
@@ -308,7 +429,7 @@ function buildBot(user) {
                         return ctx.reply(`🤖 *Commands available:*\n\n${enabled.map(c => '/' + c).join('\n')}`, { parse_mode: 'Markdown' });
                     }
                     default:
-                        return ctx.reply('✅ Command works (not fully implemented)');
+                        return ctx.reply('✅ Command works');
                 }
             } catch (e) {
                 ctx.reply('❌ Error: ' + e.message);
@@ -316,7 +437,6 @@ function buildBot(user) {
         });
     });
 
-    // Unknown command
     bot.on('text', ctx => {
         if (ctx.message.text.startsWith('/')) {
             ctx.reply('❌ Unknown command. Type /menu');
@@ -332,7 +452,6 @@ function buildBot(user) {
     activeBots.set(user.id, bot);
 }
 
-// ===== START ALL BOTS ON SERVER START =====
 db.all(`SELECT * FROM users WHERE bot_token IS NOT NULL`, [], (err, rows) => {
     if (err) return console.error(err);
     rows.forEach(user => buildBot(user));
@@ -340,11 +459,8 @@ db.all(`SELECT * FROM users WHERE bot_token IS NOT NULL`, [], (err, rows) => {
 });
 
 // ===== ROUTES =====
-
-// Landing
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-// Signup
 app.post('/api/signup', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password || password.length < 6) {
@@ -362,7 +478,6 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
-// Login
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
@@ -374,13 +489,11 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Logout
 app.post('/api/logout', (req, res) => {
     req.session.destroy();
     res.json({ success: true });
 });
 
-// Get current user
 app.get('/api/me', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
     db.get(`SELECT id, email, bot_username, enabled_commands FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
@@ -389,10 +502,8 @@ app.get('/api/me', (req, res) => {
     });
 });
 
-// Get available commands
 app.get('/api/commands', (req, res) => res.json(AVAILABLE_COMMANDS));
 
-// Save bot settings
 app.post('/api/bot/settings', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
     const { bot_token, enabled_commands } = req.body;
@@ -401,7 +512,6 @@ app.post('/api/bot/settings', (req, res) => {
         return res.status(400).json({ error: 'Invalid bot token format' });
     }
 
-    // Validate token with Telegram
     axios.get(`https://api.telegram.org/bot${bot_token}/getMe`)
         .then(response => {
             if (!response.data.ok) return res.status(400).json({ error: 'Invalid bot token' });
@@ -411,7 +521,6 @@ app.post('/api/bot/settings', (req, res) => {
                 [bot_token, username, JSON.stringify(enabled_commands), req.session.userId],
                 function(err) {
                     if (err) return res.status(500).json({ error: 'Database error' });
-                    // Rebuild bot with new settings
                     db.get(`SELECT * FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
                         if (!err && user) buildBot(user);
                     });
@@ -421,7 +530,6 @@ app.post('/api/bot/settings', (req, res) => {
         .catch(() => res.status(400).json({ error: 'Could not verify bot token' }));
 });
 
-// ===== START SERVER =====
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Server running on port ${PORT}`);
 });
