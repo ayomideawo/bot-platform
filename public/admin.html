@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
+.container { max-width:1200px; margin:0 auto; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; padding-bottom:20px; border-bottom:1px solid #222; flex-wrap:wrap; gap:10px; }
+h1 { color:#ff00ff; font-size:1.6rem; }
+.btn { padding:10px 20px; background:#00c853; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; }
+.btn.outline { background:transparent; border:1px solid #333; color:#ccc; }
+.btn.danger { background:#ff4444; color:#fff; }
+.btn.small { padding:6px 12px; font-size:0.75rem; }
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin-bottom:25px; }
+.stat-card { background:#121212; border:1px solid #222; padding:20px; border-radius:12px; text-align:center; }
+.stat-card .num { color:#00c853; font-size:2rem; font-weight:bold; }
+.stat-card .lbl { color:#666; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; margin-top:5px; }
+.card { background:#121212; border:1px solid #222; padding:25px; border-radius:12px; margin-bottom:20px; }
+.card h2 { color:#ff00ff; font-size:1.05rem; margin-bottom:15px; }
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; padding:12px; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #222; }
+td { padding:12px; border-bottom:1px solid #1a1a1a; font-size:0.85rem; }
+tr:hover { background:#0a0a0a; }
+td .email { color:#00c853; font-family:'Courier New',monospace; }
+td .bot { color:#888; font-family:'Courier New',monospace; font-size:0.8rem; }
+td .date { color:#666; font-size:0.75rem; }
+td .actions { display:flex; gap:6px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👑 Admin Panel</h1>
+        <div style="display:flex;gap:10px;">
+            <button class="btn outline" onclick="window.location.href='/dashboard.html'">← Dashboard</button>
+            <button class="btn outline" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+        <h2>👥 All Users</h2>
+        <table id="userTable">
+            <thead>
+                <tr><th>Email</th><th>Bot</th><th>Uses</th><th>Joined</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="userBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function loadStats() {
+    const res = await fetch('/api/admin/stats');
+    if (res.status === 403) { window.location.href = '/dashboard.html'; return; }
+    const s = await res.json();
+    document.getElementById('stats').innerHTML = `
+        <div class="stat-card"><div class="num">${s.users}</div><div class="lbl">Users</div></div>
+        <div class="stat-card"><div class="num">${s.bots}</div><div class="lbl">Active Bots</div></div>
+        <div class="stat-card"><div class="num">${s.commands_used}</div><div class="lbl">Commands Used</div></div>
+    `;
+}
+
+async function loadUsers() {
+    const res = await fetch('/api/admin/users');
+    if (res.status === 403) { window.location.href = '/dashboard.html'; return; }
+    const users = await res.json();
+    document.getElementById('userBody').innerHTML = users.map(u => `
+        <tr>
+            <td><span class="email">${u.email}</span></td>
+            <td>${u.bot_username ? `<span class="bot">@${u.bot_username}</span>` : '<span style="color:#555;">none</span>'}</td>
+            <td>${u.usage_count}</td>
+            <td><span class="date">${new Date(u.created_at).toLocaleDateString()}</span></td>
+            <td><div class="actions">
+                <button class="btn small outline" onclick="restart(${u.id})">Restart</button>
+                <button class="btn small danger" onclick="deleteUser(${u.id})">Delete</button>
+            </div></td>
+        </tr>
+    `).join('');
+}
+
+async function restart(id) {
+    await fetch('/api/admin/restart/' + id, { method: 'POST' });
+    alert('Bot restarted');
+}
+
+async function deleteUser(id) {
+    if (!confirm('Delete this user and their bot?')) return;
+    await fetch('/api/admin/users/' + id, { method: 'DELETE' });
+    loadUsers(); loadStats();
+}
+
+async function logout() {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/login.html';
+}
+
+loadStats();
+loadUsers();
+</script>
+</body>
+</html>
