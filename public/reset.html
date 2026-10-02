@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset Password</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+.card { background:#121212; border:1px solid #222; padding:40px; border-radius:15px; width:100%; max-width:400px; }
+h1 { color:#00c853; margin-bottom:10px; }
+.sub { color:#888; font-size:0.9rem; margin-bottom:30px; }
+input { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; margin-bottom:15px; }
+input:focus { outline:none; border-color:#00c853; }
+button { width:100%; padding:14px; background:#00c853; color:#000; border:none; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; }
+button:hover { background:#00e676; }
+.msg { padding:10px; border-radius:8px; font-size:0.85rem; text-align:center; margin-top:12px; }
+.msg.ok { background:rgba(0,200,83,0.1); color:#00c853; border:1px solid rgba(0,200,83,0.3); }
+.msg.err { background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.3); }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>Reset Password</h1>
+    <p class="sub">Enter your new password below</p>
+    <input type="password" id="newPassword" placeholder="New password (min 6 chars)">
+    <button onclick="resetPassword()">Reset Password</button>
+    <div class="msg" id="msg"></div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const msg = document.getElementById('msg');
+
+if (!token) {
+    msg.className = 'msg err';
+    msg.textContent = '❌ Invalid or missing reset token';
+}
+
+async function resetPassword() {
+    const newPassword = document.getElementById('newPassword').value;
+    if (!newPassword || newPassword.length < 6) {
+        msg.className = 'msg err';
+        msg.textContent = '❌ Password must be at least 6 characters';
+        return;
+    }
+    msg.className = 'msg';
+    msg.textContent = '⏳ Resetting...';
+    try {
+        const res = await fetch('/api/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, newPassword })
+        });
+        const data = await res.json();
+        if (data.error) {
+            msg.className = 'msg err';
+            msg.textContent = '❌ ' + data.error;
+        } else {
+            msg.className = 'msg ok';
+            msg.textContent = '✅ Password updated! Redirecting to login...';
+            setTimeout(() => window.location.href = '/login.html', 2000);
+        }
+    } catch (e) {
+        msg.className = 'msg err';
+        msg.textContent = '❌ Network error';
+    }
+}
+</script>
+</body>
+</html>
