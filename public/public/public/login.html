@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; color:#e0e0e0; font-family:'Segoe UI',system-ui,sans-serif; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+.card { background:#121212; border:1px solid #222; padding:40px; border-radius:15px; width:100%; max-width:400px; }
+h1 { color:#00c853; margin-bottom:10px; }
+.sub { color:#888; font-size:0.9rem; margin-bottom:30px; }
+input { width:100%; padding:14px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff; font-size:1rem; margin-bottom:15px; }
+input:focus { outline:none; border-color:#00c853; }
+button { width:100%; padding:14px; background:#00c853; color:#000; border:none; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; }
+button:hover { background:#00e676; }
+.error { color:#ff4444; font-size:0.85rem; margin-top:10px; text-align:center; }
+.link { text-align:center; margin-top:20px; font-size:0.9rem; color:#888; }
+.link a { color:#00c853; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>Welcome Back</h1>
+    <p class="sub">Login to your dashboard</p>
+    <input type="email" id="email" placeholder="Email address">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="error"></div>
+    <div class="link">No account? <a href="/signup.html">Sign up</a></div>
+</div>
+<script>
+async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const err = document.getElementById('error');
+    err.textContent = '';
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.error) { err.textContent = data.error; return; }
+        window.location.href = '/dashboard.html';
+    } catch (e) { err.textContent = 'Network error'; }
+}
+</script>
+</body>
+</html>
