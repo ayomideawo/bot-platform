@@ -37,8 +37,8 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
 .filter-tab { padding:6px 12px; background:#0a0a0a; border:1px solid #222; border-radius:20px; font-size:0.72rem; color:#888; cursor:pointer; transition:0.2s; }
 .filter-tab:hover { border-color:#00c853; color:#00c853; }
 .filter-tab.active { background:#00c853; border-color:#00c853; color:#000; font-weight:bold; }
-.cmd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; max-height:450px; overflow-y:auto; padding-right:5px; }
-.cmd-grid::-webkit-scrollbar { width:6px; }
+.cmd-grid { display-size:grid; grid-template-columns:repeat(auto-fill,:minmax(200px,1fr)); gap:8px;0 max-height:450px; overflow-y:.auto; padding-right:5px; }
+85.cmd-grid::-webkit-scrollbar { width:rem6px; }
 .cmd-grid::-webkit-scrollbar-thumb { background:#222; border-radius:3px; }
 .cmd { display:flex; align-items:center; gap:10px; padding:10px 12px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:9px; cursor:pointer; transition:0.2s; position:relative; }
 .cmd:hover { border-color:#00c853; background:#0d1510; }
@@ -54,15 +54,13 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
 .tab-panel { display:none; }
 .tab-panel.active { display:block; }
 .custom-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
-.custom-row input { flex:1; padding:10px; font-size:0.85rem; }
+.custom-row input { flex:1; padding:10px; font; }
 .custom-row button { padding:10px 14px; background:#ff4444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
 .custom-add { padding:10px 20px; background:transparent; border:1px dashed #00c853; color:#00c853; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:8px; }
 .analytic-row { display:flex; justify-content:space-between; padding:10px 14px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:8px; margin-bottom:6px; font-size:0.85rem; }
 .analytic-row .rank { color:#666; font-weight:bold; min-width:30px; }
 .analytic-row .cmd-name { color:#00c853; flex:1; font-family:'Courier New',monospace; }
 .analytic-row .count { color:#888; }
-
-/* Bot preview panel */
 .preview-wrap { display:grid; grid-template-columns:1fr 340px; gap:20px; }
 @media (max-width: 900px) { .preview-wrap { grid-template-columns:1fr; } }
 .preview-phone { background:#0a0a0a; border:2px solid #222; border-radius:20px; padding:15px; height:500px; display:flex; flex-direction:column; }
@@ -101,10 +99,17 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
             <div class="subtitle">Create a bot on Telegram with <strong style="color:#00c853;">@BotFather</strong> → send <code style="color:#00c853;background:#0a0a0a;padding:2px 6px;border-radius:4px;">/newbot</code> → copy the token.</div>
             <input type="password" id="botToken" placeholder="Paste your bot token (e.g. 123456:ABC-DEF...)" />
         </div>
+
         <div class="card">
             <h2>👋 Welcome Message</h2>
             <div class="subtitle">Custom greeting when someone sends /start. Leave blank for default.</div>
             <textarea id="welcomeMessage" placeholder="👋 Hey there! Welcome to my bot. Tap /menu to see what I can do!"></textarea>
+        </div>
+
+        <div class="card">
+            <h2>🔒 Bot Password (Optional)</h2>
+            <div class="subtitle">Set a password — users must enter it before using your bot. Leave blank for open access.</div>
+            <input type="text" id="botPassword" placeholder="Leave blank for no password" />
         </div>
     </div>
 
@@ -155,7 +160,7 @@ input:focus, textarea:focus { outline:none; border-color:#00c853; }
     <div class="tab-panel" id="panel-custom">
         <div class="card">
             <h2>✨ Custom Commands</h2>
-            <div class="subtitle">Create your own. Example: <code style="color:#00c853;">greet</code> → <code style="color:#00c853;">Hello friend!</code>. User sends /greet, bot replies.</div>
+            <div class="subtitle">Create your own. Example: <code style="color:#00c853;">greet</code> → <code style="color:#00c853;">Hello friend!</code>.</div>
             <div id="customList"></div>
             <button class="custom-add" onclick="addCustom()">+ Add Command</button>
         </div>
@@ -367,7 +372,7 @@ async function loadAnalytics() {
         const data = await res.json();
         document.getElementById('totalUses').textContent = data.total || 0;
         const list = document.getElementById('analyticList');
-        if (!data.top.length) {
+        if (!data.top || !data.top.length) {
             list.innerHTML = '<div style="color:#666;padding:20px;text-align:center;">No usage yet.</div>';
             return;
         }
@@ -384,13 +389,20 @@ async function loadAnalytics() {
 async function save() {
     const token = document.getElementById('botToken').value.trim();
     const welcome = document.getElementById('welcomeMessage').value.trim();
+    const botPassword = document.getElementById('botPassword') ? document.getElementById('botPassword').value.trim() : '';
     const selected = [...selectedCommands];
     if (!token) return alert('Paste your bot token first');
     try {
         const res = await fetch('/api/bot/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bot_token: token, enabled_commands: selected, welcome_message: welcome, custom_commands: customCommands })
+            body: JSON.stringify({
+                bot_token: token,
+                enabled_commands: selected,
+                welcome_message: welcome,
+                custom_commands: customCommands,
+                bot_password: botPassword
+            })
         });
         const data = await res.json();
         if (data.error) return alert('Error: ' + data.error);
